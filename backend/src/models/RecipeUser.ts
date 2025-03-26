@@ -26,10 +26,18 @@ RecipeUser.init(
         user_id: {
             type: DataTypes.BIGINT,
             allowNull: false,
+            references: {
+                model: 'users',
+                key: 'id',
+            },
         },
         recipe_id: {
             type: DataTypes.BIGINT,
             allowNull: false,
+            references: {
+                model: 'recipes',
+                key: 'recipe_id',
+            },
         },
         createdAt: DataTypes.DATE,
         updatedAt: DataTypes.DATE,

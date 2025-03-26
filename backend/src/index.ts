@@ -6,7 +6,8 @@ import cors from 'cors';
 import 'dotenv/config'
 import dotenv from "dotenv";
 import sequelize from "./database";
-import { User, Recipe, RecipeUser } from './models';
+import recipeRoutes from './routes/recipeRoutes';
+import './models';
 
 dotenv.config();
 
@@ -24,6 +25,9 @@ app.use(cors({
 app.use('/api', authRoutes);
 // Маршруты, защищённые авторизацией (например, для админа)
 app.use('/api/admin', adminRoutes);
+
+app.use('/api/recipes', recipeRoutes);
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
