@@ -120,6 +120,51 @@ router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Respo
 
 
 /**
+ * GET /api/recipes/:id
+ * Получить конкретный рецепт по ID, если он принадлежит текущему пользователю
+ */
+router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            res.status(401).json({ message: 'Unauthorized' });
+            return
+        }
+
+        const recipeId = parseInt(req.params.id, 10);
+
+        // Находим рецепт, который связан с пользователем
+        const recipe = await Recipe.findOne({
+            where: { recipe_id: recipeId },
+            include: [
+                {
+                    model: User,
+                    where: { id: userId },
+                    through: { attributes: [] },
+                },
+            ],
+        });
+
+        if (!recipe) {
+            res.status(404).json({ message: 'Recipe not found or not owned by user' });
+            return
+        }
+
+        res.json(recipe);
+        return
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+        return
+    }
+});
+
+
+
+
+
+
+/**
  * UPDATE - PUT /api/recipes/:id
  * Обновить рецепт, если он принадлежит текущему пользователю
  */
