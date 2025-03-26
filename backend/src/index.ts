@@ -6,6 +6,7 @@ import cors from 'cors';
 import 'dotenv/config'
 import dotenv from "dotenv";
 import sequelize from "./database";
+import { User, Recipe, RecipeUser } from './models';
 
 dotenv.config();
 

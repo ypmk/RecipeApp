@@ -1,4 +1,5 @@
-import { Model, InferAttributes, InferCreationAttributes, CreationOptional, NonAttribute } from 'sequelize';
+import {Model, InferAttributes, InferCreationAttributes, CreationOptional, NonAttribute, DataTypes} from 'sequelize';
+import sequelize from "../database";
 
 class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
     // 'CreationOptional' is a special type that marks the field as optional
@@ -14,5 +15,34 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
     // updatedAt can be undefined during creation
     declare updatedAt: CreationOptional<Date>;
 }
+
+User.init(
+    {
+        id: {
+            type: DataTypes.BIGINT,
+            autoIncrement: true,
+            primaryKey: true,
+            field: 'user_id',
+        },
+        username: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        password: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        role: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        createdAt: DataTypes.DATE,
+        updatedAt: DataTypes.DATE,
+    },
+    {
+        sequelize,
+        tableName: 'users'
+    }
+)
 
 export default User;
