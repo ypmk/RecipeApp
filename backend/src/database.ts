@@ -1,5 +1,6 @@
 import {DataTypes, Sequelize} from 'sequelize';
 import dotenv from 'dotenv';
+import User from "./models/User";
 
 dotenv.config();
 
@@ -23,29 +24,52 @@ sequelize.authenticate()
         console.error(err)
     });
 
-const Users = sequelize.define('users', {
-    id: {
-        type: DataTypes.BIGINT,
-        autoIncrement: true,
-        primaryKey: true,
+// const Users = sequelize.define('users', {
+//     id: {
+//         type: DataTypes.BIGINT,
+//         autoIncrement: true,
+//         primaryKey: true,
+//     },
+//     username: {
+//         type: DataTypes.STRING,
+//         allowNull: false,
+//     },
+//     password: {
+//         type: DataTypes.STRING,
+//         allowNull: false,
+//     },
+//     role: {
+//         type: DataTypes.STRING,
+//         allowNull: false,
+//     }
+// });
+
+User.init(
+    {
+        id: {
+            type: DataTypes.BIGINT,
+            autoIncrement: true,
+            primaryKey: true,
+        },
+        username: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        password: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        role: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        createdAt: DataTypes.DATE,
+        updatedAt: DataTypes.DATE,
     },
-    username: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    password: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    role: {
-        type: DataTypes.STRING,
-        allowNull: false,
+    {
+        sequelize,
+        tableName: 'users'
     }
-});
+)
 
-sequelize.sync({alter: true})
-    .then(() => {
-        console.log('All models were synchronized successfully.');
-    });
-
-export {sequelize, Users};
+export default sequelize;

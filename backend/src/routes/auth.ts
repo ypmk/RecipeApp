@@ -1,9 +1,10 @@
 import {Request, Response, NextFunction, Router} from 'express';
 import bcrypt from 'bcrypt';
-import pool from '../config/db';
-import {Users} from "../database";
 import jwt from "jsonwebtoken";
-import asyncHandler from 'express-async-handler';
+import User from "../models/User";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const router = Router();
 
@@ -15,7 +16,7 @@ router.post('/register', async (req, res) => {
     let mappedRole: string = role || 'user';
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = await Users.create({
+        const newUser = await User.create({
             username: username,
             password: hashedPassword,
             role: mappedRole
@@ -31,16 +32,21 @@ router.post('/login', async (req, res) => {
     try {
         const {username, password} = req.body as { username: string; password: string };
 
-        const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
-        const user = result.rows[0];
+        const user: User | null  = await User.findOne({
+            where: {
+                username: username
+            }
+        });
 
         if (!user) {
             res.status(401).json({error: 'Неверное имя пользователя или пароль'});
+            return;
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             res.status(401).json({error: 'Неверное имя пользователя или пароль'});
+            return;
         }
 
         const token = jwt.sign(
