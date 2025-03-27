@@ -29,6 +29,7 @@ IngredientUnits.init(
         name: {
             type: DataTypes.STRING(30),
             allowNull: false,
+            unique: true,
         },
         createdAt: DataTypes.DATE,
         updatedAt: DataTypes.DATE,

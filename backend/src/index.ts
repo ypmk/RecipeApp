@@ -8,13 +8,14 @@ import dotenv from "dotenv";
 import sequelize from "./database";
 import recipeRoutes from './routes/recipeRoutes';
 import './models';
+import IngredientUnits from "./models/IngredientUnits";
 
 dotenv.config();
 
 const app = express();
 
 app.use(json());
-
+ы
 app.use(express.json());
 
 app.use(cors({
@@ -29,12 +30,35 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/recipes', recipeRoutes);
 
 
+const seedIngredientUnits = async () => {
+    const existing = await IngredientUnits.count();
+    if (existing === 0) {
+        const units = ['шт', 'ст', 'ч.л', 'ст.л', 'гр', 'кг', 'мл', 'л'];
+        await IngredientUnits.bulkCreate(units.map(name => ({ name })));
+        console.log('Единицы измерения успешно добавлены');
+    } else {
+        console.log('Единицы измерения уже существуют');
+    }
+};
+
+
+
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Сервер запущен на порту ${PORT}`);
     sequelize
         .sync({alter: true})
-        .then(() => {
-            console.log('All models were synchronized successfully.');
+        .then(async () => {
+            console.log('Все модели синхронизированы успешно');
+            await seedIngredientUnits();
+        })
+        .catch(err => {
+            console.error('Ошибка синхронизации базы данных:', err);
         });
 });
+
+
+
+
