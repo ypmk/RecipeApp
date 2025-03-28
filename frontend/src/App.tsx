@@ -7,6 +7,10 @@ import './index.css';
 import Collections from "./pages/Collections.tsx";
 import Planner from "./pages/Planner.tsx";
 import Lists from "./pages/Lists.tsx";
+import RecipesList from "./components/RecipesList.tsx";
+import RecipeDetails from "./components/RecipeDetails.tsx";
+import './api/axiosConfig'
+import RecipeDetailsPage from "./pages/RecipeDetailsPage.tsx";
 
 const App: React.FC = () => {
     return (
@@ -28,6 +32,9 @@ const App: React.FC = () => {
 
                 <Route path="/planner" element={<Planner />} />
                 <Route path="/lists" element={<Lists />} />
+
+                <Route path="/recipes" element={<RecipesList />} />
+                <Route path="/recipes/:id" element={<RecipeDetailsPage />} />
 
             </Routes>
         </div>

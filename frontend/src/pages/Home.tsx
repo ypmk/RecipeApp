@@ -2,8 +2,8 @@ import React from 'react';
 import Header from '../components/Header'
 import SearchBar from "../components/SearchBar.tsx";
 import FilterBar from "../components/FilterBar.tsx";
-import RecipeGrid from "../components/RecipeGrid.tsx";
 import AddButton from "../components/AddButton.tsx";
+import RecipesList from "../components/RecipesList.tsx";
 
 const Home: React.FC = () => {
     return (
@@ -13,7 +13,7 @@ const Home: React.FC = () => {
                 <div className="max-w-[960px] mx-auto">
                     <SearchBar />
                     <FilterBar />
-                    <RecipeGrid />
+                    <RecipesList/>
                     <div className="flex justify-end px-5 pb-5">
                         <AddButton />
                     </div>
