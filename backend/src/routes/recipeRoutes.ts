@@ -3,7 +3,7 @@ import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth';
 import Recipe from '../models/Recipe';
 import RecipeUser from '../models/RecipeUser';
 import User from '../models/User';
-import {Ingredient} from "../models";
+import {Ingredient, IngredientUnits} from "../models";
 
 
 const router = Router();
@@ -110,6 +110,12 @@ router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Respo
                 {
                     model: Ingredient,
                     as: 'ingredients',
+                    include: [
+                        {
+                            model: IngredientUnits,
+                            attributes: ['name'],
+                        },
+                    ],
                     through: { attributes: ['quantity'] },
                 },
             ],

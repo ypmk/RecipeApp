@@ -13,6 +13,9 @@ interface Ingredient {
     name: string;
     // Связь RecipesIngredients, где хранится количество для этого рецепта
     RecipesIngredients: RecipeIngredientInfo;
+    IngredientUnit?: {
+        name: string;
+    };
 }
 
 // Интерфейс для рецепта с ингредиентами
@@ -76,7 +79,8 @@ const RecipeDetails: React.FC = () => {
                         >
                             <p className="text-[#A18249] text-sm">{ingredient.name}</p>
                             <p className="text-[#1C160C] text-sm">
-                                {ingredient.RecipesIngredients.quantity} г
+                                {ingredient.RecipesIngredients.quantity}{' '}
+                                {ingredient.IngredientUnit?.name ?? ''}
                             </p>
                         </div>
                     ))
