@@ -11,6 +11,7 @@ import RecipesList from "./components/RecipesList.tsx";
 import RecipeDetails from "./components/RecipeDetails.tsx";
 import './api/axiosConfig'
 import RecipeDetailsPage from "./pages/RecipeDetailsPage.tsx";
+import CreateRecipe from "./components/CreateRecipe.tsx";
 
 const App: React.FC = () => {
     return (
@@ -35,6 +36,8 @@ const App: React.FC = () => {
 
                 <Route path="/recipes" element={<RecipesList />} />
                 <Route path="/recipes/:id" element={<RecipeDetailsPage />} />
+
+                <Route path="/createRecipe" element={<CreateRecipe />} />
 
             </Routes>
         </div>

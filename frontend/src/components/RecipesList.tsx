@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import {Link} from 'react-router-dom';
 
 // Описываем поля, которые приходят из бэкенда
 interface Recipe {
@@ -12,6 +12,7 @@ interface Recipe {
 function RecipesList() {
     const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [loading, setLoading] = useState(true);
+
 
 
     useEffect(() => {
@@ -53,6 +54,7 @@ function RecipesList() {
                             {recipe.name}
                         </div>
                     </Link>
+
                 ))}
             </div>
         </div>
