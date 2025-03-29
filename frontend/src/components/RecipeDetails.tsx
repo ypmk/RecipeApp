@@ -2,27 +2,44 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 
+// Интерфейс для связующей записи, содержащей количество
+interface RecipeIngredientInfo {
+    quantity: number;
+}
+
+// Интерфейс для ингредиента
+interface Ingredient {
+    ingredient_id: number;
+    name: string;
+    // Связь RecipesIngredients, где хранится количество для этого рецепта
+    RecipesIngredients: RecipeIngredientInfo;
+}
+
+// Интерфейс для рецепта с ингредиентами
 interface Recipe {
     recipe_id: number;
     name: string;
     instructions?: string;
     time_cooking?: number;
     number_of_servings?: number;
+    ingredients?: Ingredient[];
 }
 
-const RecipeDetails = () => {
+const RecipeDetails: React.FC = () => {
     const [recipe, setRecipe] = useState<Recipe | null>(null);
     const [loading, setLoading] = useState(true);
-    const { id } = useParams();
+    const { id } = useParams<{ id: string }>();
+    const recipeId = parseInt(id || '0', 10);
 
     useEffect(() => {
         axios
-            .get<Recipe>(`/api/recipes/${id}`, {
+            .get<Recipe>(`/api/recipes/${recipeId}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
             })
             .then((res) => {
+                console.log('Полученный рецепт:', res.data);
                 setRecipe(res.data);
                 setLoading(false);
             })
@@ -30,13 +47,13 @@ const RecipeDetails = () => {
                 console.error(err);
                 setLoading(false);
             });
-    }, [id]);
+    }, [recipeId]);
 
     if (loading) return <div className="p-4">Загрузка рецепта...</div>;
     if (!recipe) return <div className="p-4">Рецепт не найден</div>;
 
     return (
-        <div className="px-10 py-6 max-w-4xl mx-auto font-['Plus Jakarta Sans','Noto Sans',sans-serif]">
+        <div className="px-10 py-6 max-w-4xl mx-auto font-['Plus_Jakarta_Sans','Noto_Sans',sans-serif]">
             <h1 className="text-3xl font-black text-[#1C160C] mb-4">{recipe.name}</h1>
 
             {/* Картинка */}
@@ -51,15 +68,21 @@ const RecipeDetails = () => {
             {/* Ингредиенты */}
             <h2 className="text-[22px] font-bold text-[#1C160C] px-4 pb-3">Ингредиенты:</h2>
             <div className="p-4 grid grid-cols-[20%_1fr] gap-x-6">
-                {['Мука', 'Мука', 'Мука'].map((ingredient, i) => (
-                    <div
-                        key={i}
-                        className="col-span-2 grid grid-cols-subgrid border-t border-t-[#E9DFCE] py-5"
-                    >
-                        <p className="text-[#A18249] text-sm">{ingredient}</p>
-                        <p className="text-[#1C160C] text-sm">150г</p>
-                    </div>
-                ))}
+                {recipe.ingredients && recipe.ingredients.length > 0 ? (
+                    recipe.ingredients.map((ingredient) => (
+                        <div
+                            key={ingredient.ingredient_id}
+                            className="col-span-2 grid grid-cols-subgrid border-t border-t-[#E9DFCE] py-5"
+                        >
+                            <p className="text-[#A18249] text-sm">{ingredient.name}</p>
+                            <p className="text-[#1C160C] text-sm">
+                                {ingredient.RecipesIngredients.quantity} г
+                            </p>
+                        </div>
+                    ))
+                ) : (
+                    <div className="col-span-2">Ингредиенты не найдены.</div>
+                )}
             </div>
 
             {/* Инструкции */}
@@ -98,7 +121,6 @@ const RecipeDetails = () => {
                     <div className="p-4 grid grid-cols-[20%_1fr] gap-x-6">
                         <div className="col-span-2 grid grid-cols-subgrid border-t border-t-[#E9DFCE] py-5">
                             <p className="text-[#A18249] text-sm">{recipe.number_of_servings}</p>
-                            <p className="text-[#1C160C] text-sm"></p>
                         </div>
                     </div>
                 </>
