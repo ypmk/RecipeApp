@@ -1,22 +1,28 @@
-import { useEffect, useState } from 'react';
+import {useContext, useEffect, useState} from 'react';
 import axios from 'axios';
 import {Link} from 'react-router-dom';
+import {AuthContext} from "../context/AuthContext.tsx";
 
-// Описываем поля, которые приходят из бэкенда
+
 interface Recipe {
     recipe_id: number;
     name: string;
-    // Можно добавить другие поля (instructions, time_cooking и т.д.)
 }
 
 function RecipesList() {
     const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const { user } = useContext(AuthContext);
 
 
     useEffect(() => {
-        // Если нужно, добавьте токен в заголовок:
+        if (!user) {
+            setRecipes([]);
+            return;
+        }
+
+
         axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('token')}`;
 
         axios.get<Recipe[]>('/api/recipes')
@@ -29,7 +35,7 @@ function RecipesList() {
                 console.error(err);
                 setLoading(false);
             });
-    }, []);
+    }, [user]);
 
     if (loading) {
         return <div className="p-4 text-center">Загрузка рецептов...</div>;
