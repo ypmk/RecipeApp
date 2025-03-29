@@ -32,11 +32,13 @@ Recipe.belongsToMany(Ingredient, {
     through: RecipesIngredients,
     foreignKey: 'recipe_id',
     otherKey: 'ingredient_id',
+    as: 'ingredients'
 });
 Ingredient.belongsToMany(Recipe, {
     through: RecipesIngredients,
     foreignKey: 'ingredient_id',
     otherKey: 'recipe_id',
+    as: 'recipes',
 });
 
 /** ---------- Связь Ingredient -> IngredientUnits (многие к одному) ----------

@@ -3,6 +3,7 @@ import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth';
 import Recipe from '../models/Recipe';
 import RecipeUser from '../models/RecipeUser';
 import User from '../models/User';
+import {Ingredient} from "../models";
 
 
 const router = Router();
@@ -53,29 +54,34 @@ router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response
         const userId = req.user?.id;
         if (!userId) {
             res.status(401).json({ message: 'Unauthorized' });
-            return
+            return;
         }
 
-        // Ищем все рецепты, связанные с пользователем userId
+        // Ищем все рецепты, связанные с пользователем и включаем ингредиенты
         const recipes = await Recipe.findAll({
             include: [
                 {
                     model: User,
                     where: { id: userId },
-                    through: { attributes: [] }, // скрыть поля промежуточной таблицы из ответа
+                    through: { attributes: [] },
+                },
+                {
+                    model: Ingredient,
+                    as: 'ingredients',
+                    // Включаем поля из связывающей таблицы (например, количество)
+                    through: { attributes: ['quantity'] },
                 },
             ],
         });
 
         res.json(recipes);
-        return
+        return;
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
-        return
+        return;
     }
 });
-
 
 
 /**
@@ -87,11 +93,12 @@ router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Respo
         const userId = req.user?.id;
         if (!userId) {
             res.status(401).json({ message: 'Unauthorized' });
-            return
+            return;
         }
 
         const recipeId = parseInt(req.params.id, 10);
 
+        // Ищем рецепт с указанным ID и включаем ингредиенты
         const recipe = await Recipe.findOne({
             where: { recipe_id: recipeId },
             include: [
@@ -100,22 +107,28 @@ router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Respo
                     where: { id: userId },
                     through: { attributes: [] },
                 },
+                {
+                    model: Ingredient,
+                    as: 'ingredients',
+                    through: { attributes: ['quantity'] },
+                },
             ],
         });
 
         if (!recipe) {
             res.status(404).json({ message: 'Recipe not found or not owned by user' });
-            return
+            return;
         }
 
         res.json(recipe);
-        return
+        return;
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
-        return
+        return;
     }
 });
+
 
 
 

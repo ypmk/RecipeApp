@@ -9,6 +9,8 @@ import sequelize from "./database";
 import recipeRoutes from './routes/recipeRoutes';
 import './models';
 import IngredientUnits from "./models/IngredientUnits";
+import ingredientRoutes from "./routes/ingredientRoutes";
+import recipeIngredientsRoutes from './routes/recipeIngredients';
 
 dotenv.config();
 
@@ -28,6 +30,16 @@ app.use('/api', authRoutes);
 app.use('/api/admin', adminRoutes);
 
 app.use('/api/recipes', recipeRoutes);
+app.use('/api/recipes/:recipeId/ingredients', recipeIngredientsRoutes);
+
+
+
+app.use('/api/ingredients', ingredientRoutes);
+
+
+
+
+
 
 
 const seedIngredientUnits = async () => {
