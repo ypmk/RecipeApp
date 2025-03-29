@@ -25,7 +25,7 @@ const Register: React.FC = () => {
             }
 
             // Успешная регистрация
-            const data = await response.json();
+            await response.json();
             alert('Регистрация прошла успешно!');
 
             // Можно сразу логинить пользователя или перенаправить на страницу логина

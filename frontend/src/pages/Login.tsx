@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, {useContext, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
+import {AuthContext} from "../context/AuthContext.tsx";
+import {jwtDecode} from "jwt-decode";
+import type { User } from '../context/AuthContext'
 
 const Login: React.FC = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
+    const { setUser } = useContext(AuthContext);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -19,18 +23,18 @@ const Login: React.FC = () => {
             });
 
             if (!response.ok) {
-                // Ошибка на сервере или неверные данные
                 const errorData = await response.json();
                 alert(`Ошибка: ${errorData.message || 'Неверный логин/пароль'}`);
                 return;
             }
 
-            // Если всё ок, получаем токен (или другой ответ)
-            const data = await response.json();
-            // Сохраняем токен, например, в localStorage
-            localStorage.setItem('token', data.token);
 
-            // Перенаправляем на домашнюю страницу
+            const data = await response.json();
+
+            localStorage.setItem('token', data.token);
+            const decoded = jwtDecode<User>(data.token);
+            setUser(decoded);
+
             navigate('/');
         } catch (error) {
             console.error(error);

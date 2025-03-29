@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import {Link} from 'react-router-dom';
 
@@ -45,7 +45,7 @@ function RecipesList() {
                         className="group relative block rounded-md shadow-sm overflow-hidden"
                     >
                         <img
-                            src="pasta.jpg"
+                            src="/pasta.jpg"
                             alt={recipe.name}
                             className="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105"
                         />

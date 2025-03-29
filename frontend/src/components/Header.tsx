@@ -1,7 +1,16 @@
-// components/Header.tsx
-import {Link} from "react-router-dom";
+// src/components/Header.tsx
+import  { useContext } from 'react';
+import { Link } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 
 const Header = () => {
+    const { user, setUser } = useContext(AuthContext);
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        setUser(null);
+    };
+
     const navItems = [
         { title: 'Главная', to: '/' },
         { title: 'Коллекции', to: '/collections' },
@@ -9,11 +18,10 @@ const Header = () => {
         { title: 'Списки', to: '/lists' },
     ];
 
-
     return (
         <header className="flex items-center justify-between border-b border-[#E4E9F1] px-10 py-3">
             <div className="flex items-center gap-4 text-[#141C24]">
-                <div className="w-4 h-4 text-current">
+                <div className="w-4 h-4">
                     {/* Логотип */}
                     <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path
@@ -32,37 +40,52 @@ const Header = () => {
                         </Link>
                     ))}
                 </nav>
-                <div className="flex gap-2">
-                    <Link to="/favorites">
-                        <IconButton icon="heart" />
-                    </Link>
-                    <Link to="/profile">
-                        <IconButton icon="user" />
-                    </Link>
+                <div className="flex items-center gap-4">
+                    {user ? (
+                        <>
+                            <div
+
+                                className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="w-5 h-5 text-gray-800"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={2}
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M5.121 17.804A10.97 10.97 0 0112 15c2.43 0 4.663.777 6.435 2.09M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                    />
+                                </svg>
+                            </div>
+                            <button
+                                onClick={handleLogout}
+                                className="px-3 py-1 rounded bg-red-500 text-white text-sm hover:bg-red-600 transition"
+                            >
+                                Выйти
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <Link to="/login">
+                                <button className="px-3 py-1 rounded bg-blue-500 text-white text-sm hover:bg-blue-600 transition">
+                                    Войти
+                                </button>
+                            </Link>
+                            <Link to="/register">
+                                <button className="px-3 py-1 rounded bg-green-500 text-white text-sm hover:bg-green-600 transition">
+                                    Зарегистрироваться
+                                </button>
+                            </Link>
+                        </>
+                    )}
                 </div>
             </div>
         </header>
-    );
-};
-
-const IconButton = ({ icon }: { icon: 'heart' | 'user' }) => {
-    const icons = {
-        heart: (
-            <svg viewBox="0 0 256 256" className="w-5 h-5" fill="currentColor">
-                <path d="M178,32c-20.65,0-38.73,8.88-50,23.89C116.73,40.88,98.65,32,78,32A62,62,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62,62,0,0,0,178,32Z" />
-            </svg>
-        ),
-        user: (
-            <svg viewBox="0 0 256 256" className="w-5 h-5" fill="currentColor">
-                <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24ZM74.08,197.5a64,64,0,0,1,107.84,0A87.83,87.83,0,0,1,74.08,197.5ZM96,120a32,32,0,1,1,32,32A32,32,0,0,1,96,120Z" />
-            </svg>
-        ),
-    };
-
-    return (
-        <button className="h-10 w-10 rounded-full bg-[#E4E9F1] flex items-center justify-center">
-            {icons[icon]}
-        </button>
     );
 };
 
