@@ -11,6 +11,8 @@ import './models';
 import IngredientUnits from "./models/IngredientUnits";
 import ingredientRoutes from "./routes/ingredientRoutes";
 import recipeIngredientsRoutes from './routes/recipeIngredients';
+import ingredientUnitsRoutes from "./routes/ingredientUnitsRoutes";
+
 
 dotenv.config();
 
@@ -36,7 +38,7 @@ app.use('/api/recipes/:recipeId/ingredients', recipeIngredientsRoutes);
 
 app.use('/api/ingredients', ingredientRoutes);
 
-
+app.use('/api/ingredient-units', ingredientUnitsRoutes);
 
 
 

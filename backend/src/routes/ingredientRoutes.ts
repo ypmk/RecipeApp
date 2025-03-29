@@ -2,6 +2,7 @@ import express, { Response } from 'express';
 import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth';
 import Ingredient from '../models/Ingredient';
 import IngredientUnits from '../models/IngredientUnits';
+import {Op} from "sequelize";
 
 const router = express.Router();
 
@@ -48,5 +49,40 @@ router.post('/', authenticateJWT, async (req: AuthenticatedRequest, res: Respons
         return
     }
 });
+
+
+
+// routes/ingredientRoutes.ts
+router.get('/search', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user?.id;
+    const query = req.query.q as string;
+
+    if (!userId || !query) {
+        res.status(400).json({ message: 'Missing user or query' });
+        return
+    }
+
+    try {
+        const matches = await Ingredient.findAll({
+            where: {
+                user_id: userId,
+                name: {
+                    [Op.iLike]: `%${query}%`, // поиск по подстроке, нечувствительный к регистру
+                },
+            },
+            limit: 10,
+        });
+
+        res.json(matches);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Ошибка при поиске ингредиентов' });
+    }
+});
+
+
+
+
+
 
 export default router;
