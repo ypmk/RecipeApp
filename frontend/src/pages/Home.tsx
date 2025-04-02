@@ -4,7 +4,6 @@ import SearchBar from "../components/SearchBar.tsx";
 import FilterBar from "../components/FilterBar.tsx";
 import AddButton from "../components/AddButton.tsx";
 import RecipesList from "../components/RecipesList.tsx";
-import RecipeImagesUploader from "../components/RecipeImagesUploader.tsx";
 
 const Home: React.FC = () => {
     return (

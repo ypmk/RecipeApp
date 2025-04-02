@@ -125,6 +125,7 @@ function CreateRecipe() {
         if (e.target.files) {
             const newFiles = Array.from(e.target.files);
             setAdditionalImages(prev => [...prev, ...newFiles]);
+            e.target.value = "";
         }
     };
 
@@ -235,22 +236,59 @@ function CreateRecipe() {
                 {/* Блок загрузки главного изображения */}
                 <div className="mb-4">
                     <label className="block font-semibold text-gray-700 mb-2">Главное изображение</label>
+                    {/* Скрытый input */}
                     <input
+                        id="mainImageInput"
                         type="file"
                         accept="image/*"
                         onChange={handleMainImageChange}
-                        className="w-full"
+                        className="hidden"
                     />
-                    {mainImage && (
-                        <div className="mt-2">
+                    {/* Если главное изображение не выбрано – показываем пустое поле с плюсом */}
+                    {!mainImage ? (
+                        <label
+                            htmlFor="mainImageInput"
+                            className="
+                                cursor-pointer
+                                inline-flex
+                                items-center
+                                justify-center
+                                w-36
+                                h-36
+                                border-2
+                                border-dashed
+                                border-gray-300
+                                rounded-md
+                              "
+                        >
+                            <span className="text-4xl text-gray-400">+</span>
+                        </label>
+                    ) : (
+                        <div className="mt-2 relative inline-block">
                             <img
                                 src={URL.createObjectURL(mainImage)}
                                 alt="Миниатюра главного изображения"
                                 className="w-24 h-24 object-cover rounded"
                             />
+                            <button
+                                type="button"
+                                onClick={() => setMainImage(null)}
+                                className="
+                                  absolute top-0 right-0
+                                  bg-red-500 text-white
+                                  p-1 rounded-full
+                                  hover:bg-red-600
+                                  transition-colors
+                                "
+                                title="Удалить изображение"
+                            >
+                                &times;
+                            </button>
                         </div>
                     )}
                 </div>
+
+
 
 
                 <div className="flex gap-4">
@@ -358,34 +396,76 @@ function CreateRecipe() {
                 </div>
 
 
-                {/* Блок для выбора дополнительных изображений */}
                 <div className="mb-4">
                     <label className="block font-semibold text-gray-700 mb-2">
                         Дополнительные изображения
                     </label>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleAdditionalImagesChange}
-                        className="w-full"
-                    />
+                    <div className="flex items-center gap-4">
+                        {/* Стилизованный label с пустым полем и кнопкой "плюс" */}
+                        <label
+                            htmlFor="additionalImagesInput"
+                            className="
+                                cursor-pointer
+                                inline-flex
+                                items-center
+                                justify-center
+                                w-36
+                                h-36
+                                border-2
+                                border-dashed
+                                border-gray-300
+                                rounded-md
+                              "
+                        >
+                            <span className="text-4xl text-gray-400">+</span>
+                        </label>
+                        {/* Скрытый input */}
+                        <input
+                            id="additionalImagesInput"
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleAdditionalImagesChange}
+                            className="hidden"
+                        />
+                    </div>
+                    {/* Превью выбранных дополнительных изображений */}
                     {additionalImages.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-2">
+                        <div className="mt-4 flex flex-wrap gap-4">
                             {additionalImages.map((file, index) => {
                                 const preview = URL.createObjectURL(file);
                                 return (
-                                    <div key={index} className="w-24 h-24 relative">
+                                    <div key={index} className="relative w-24 h-24">
                                         <img
                                             src={preview}
                                             alt={`Доп. изображение ${index + 1}`}
-                                            className="w-full h-full object-cover rounded"
+                                            className="w-full h-full object-cover rounded-md border border-gray-200"
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setAdditionalImages(prev => prev.filter((_, i) => i !== index))
+                                            }
+                                            className="
+                                                absolute top-1 right-1
+                                                bg-red-600 text-white
+                                                w-6 h-6 flex items-center justify-center
+                                                rounded-full shadow hover:bg-red-700 transition-colors
+                                              "
+                                            title="Удалить изображение"
+                                        >
+                                            &times;
+                                        </button>
                                     </div>
                                 );
                             })}
                         </div>
                     )}
                 </div>
+
+
+
+
 
 
                 <button
