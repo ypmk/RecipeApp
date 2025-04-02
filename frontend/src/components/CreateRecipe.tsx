@@ -37,6 +37,9 @@ function CreateRecipe() {
     const [showSuggestions, setShowSuggestions] = useState<boolean[]>([false]);
     const [mainImage, setMainImage] = useState<File | null>(null);
 
+    // Состояние для дополнительных изображений (храним файлы в виде массива)
+    const [additionalImages, setAdditionalImages] = useState<File[]>([]);
+
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -110,6 +113,24 @@ function CreateRecipe() {
         setShowSuggestions(updatedShow);
     };
 
+    // Обработчик выбора главного изображения
+    const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setMainImage(e.target.files[0]);
+        }
+    };
+
+    // Обработчик выбора дополнительных изображений
+    const handleAdditionalImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const newFiles = Array.from(e.target.files);
+            setAdditionalImages(prev => [...prev, ...newFiles]);
+        }
+    };
+
+
+
+    // Обработчик отправки формы создания рецепта
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isSubmitting) return;
@@ -118,7 +139,7 @@ function CreateRecipe() {
         setSuccess(null);
         setIngredientErrors([]);
 
-        // Проверка на дубли ингредиентов (без учета регистра и лишних пробелов)
+        // Проверка на дубли ингредиентов
         const ingredientNames = ingredients.map((ing) => ing.name.trim().toLowerCase());
         const duplicates = ingredientNames.filter((name, idx) => ingredientNames.indexOf(name) !== idx);
         if (duplicates.length > 0) {
@@ -141,12 +162,11 @@ function CreateRecipe() {
                 formData.append('main_image', mainImage);
             }
 
-            // Отправка запроса на создание рецепта
+            // Создаём рецепт
             const recipeRes = await axios.post('/api/recipes', formData, { headers });
             const recipeId = recipeRes.data.recipe_id;
-            const errors: string[] = [];
 
-            // Отправка ингредиентов, связанных с рецептом
+            // Отправляем ингредиенты, связанные с рецептом
             for (let i = 0; i < ingredients.length; i++) {
                 const { name, quantity, unit_id } = ingredients[i];
                 if (!name.trim()) continue;
@@ -157,23 +177,21 @@ function CreateRecipe() {
                         { headers }
                     );
                 } catch (err: any) {
-                    if (err?.response?.status === 409) {
-                        errors[i] = `Ингредиент "${name}" уже добавлен`;
-                    } else {
-                        errors[i] = `Ошибка с "${name}"`;
-                    }
+                    // Обработка ошибок для ингредиентов (можно собрать ошибки, если требуется)
+                    console.error(`Ошибка с ингредиентом "${name}":`, err);
                 }
             }
 
-            if (errors.length > 0) {
-                setIngredientErrors(errors);
-                setSuccess('Рецепт создан, но с ошибками по ингредиентам');
-            } else {
-                setSuccess('Рецепт успешно создан!');
-                setTimeout(() => navigate('/'), 1000);
+            // Если выбраны дополнительные изображения, отправляем их на сервер сразу после создания рецепта
+            if (additionalImages.length > 0) {
+                const imagesFormData = new FormData();
+                additionalImages.forEach(file => {
+                    imagesFormData.append('images', file);
+                });
+                await axios.post(`/api/recipes/${recipeId}/images`, imagesFormData, { headers });
             }
 
-            // Сброс формы
+            setSuccess('Рецепт успешно создан!');
             setName('');
             setInstructions('');
             setTimeCooking('');
@@ -182,12 +200,14 @@ function CreateRecipe() {
             setSuggestions([[]]);
             setShowSuggestions([false]);
             setMainImage(null);
+            setAdditionalImages([]);
+            setIsSubmitting(false);
+            navigate('/');
         } catch (err) {
             console.error(err);
             setError('Ошибка при создании рецепта');
+            setIsSubmitting(false);
         }
-
-        setIsSubmitting(false);
     };
 
     return (
@@ -217,15 +237,21 @@ function CreateRecipe() {
                     <label className="block font-semibold text-gray-700 mb-2">Главное изображение</label>
                     <input
                         type="file"
-                        accept="main_image/*"
-                        onChange={(e) => {
-                            if (e.target.files && e.target.files.length > 0) {
-                                setMainImage(e.target.files[0]);
-                            }
-                        }}
+                        accept="image/*"
+                        onChange={handleMainImageChange}
                         className="w-full"
                     />
+                    {mainImage && (
+                        <div className="mt-2">
+                            <img
+                                src={URL.createObjectURL(mainImage)}
+                                alt="Миниатюра главного изображения"
+                                className="w-24 h-24 object-cover rounded"
+                            />
+                        </div>
+                    )}
                 </div>
+
 
                 <div className="flex gap-4">
                     <input
@@ -243,6 +269,8 @@ function CreateRecipe() {
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                     />
                 </div>
+
+
 
                 <div>
                     <label className="block font-semibold text-gray-700 mb-2">Ингредиенты</label>
@@ -328,6 +356,37 @@ function CreateRecipe() {
                         ➕ Добавить ингредиент
                     </button>
                 </div>
+
+
+                {/* Блок для выбора дополнительных изображений */}
+                <div className="mb-4">
+                    <label className="block font-semibold text-gray-700 mb-2">
+                        Дополнительные изображения
+                    </label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAdditionalImagesChange}
+                        className="w-full"
+                    />
+                    {additionalImages.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                            {additionalImages.map((file, index) => {
+                                const preview = URL.createObjectURL(file);
+                                return (
+                                    <div key={index} className="w-24 h-24 relative">
+                                        <img
+                                            src={preview}
+                                            alt={`Доп. изображение ${index + 1}`}
+                                            className="w-full h-full object-cover rounded"
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+
 
                 <button
                     type="submit"

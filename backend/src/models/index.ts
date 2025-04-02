@@ -13,6 +13,7 @@ import ShoppingLists from "./ShoppingLists";
 import CollectionUsers from "./CollectionUsers";
 import Collections from "./Collections";
 import CollectionsRecipes from "./CollectionsRecipes";
+import RecipeImage from "./RecipeImage";
 
 
 /** ---------- Связи между User и Recipe через RecipeUser ---------- */
@@ -40,6 +41,17 @@ Ingredient.belongsToMany(Recipe, {
     otherKey: 'recipe_id',
     as: 'recipes',
 });
+
+/** ---------- Связи между Recipes и Images ---------- */
+Recipe.hasMany(RecipeImage, {
+    foreignKey: 'recipe_id',
+    as: 'images',
+});
+RecipeImage.belongsTo(Recipe, {
+    foreignKey: 'recipe_id',
+    as: 'recipe',
+});
+
 
 /** ---------- Связь Ingredient -> IngredientUnits (многие к одному) ----------
  *  Предположим, что в таблице Ingredients есть столбец unit_id, который ссылается на ing_unit_id.

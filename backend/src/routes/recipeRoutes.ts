@@ -5,6 +5,7 @@ import RecipeUser from '../models/RecipeUser';
 import User from '../models/User';
 import {Ingredient, IngredientUnits} from "../models";
 import {upload} from "../middleware/upload";
+import RecipeImage from "../models/RecipeImage";
 
 const router = Router();
 
@@ -126,6 +127,10 @@ router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Respo
                         },
                     ],
                     through: { attributes: ['quantity'] },
+                },
+                {
+                    model: RecipeImage,
+                    as: 'images',
                 },
             ],
         });
@@ -249,6 +254,61 @@ router.delete('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Re
         return
     }
 });
+
+
+
+
+/**
+ * POST /api/recipes/:id/images
+ * Загружает дополнительные изображения для рецепта.
+ */
+router.post('/:id/images', authenticateJWT, upload.array('images', 5), async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            res.status(401).json({ message: 'Unauthorized' });
+            return;
+        }
+
+        const recipeId = parseInt(req.params.id, 10);
+
+        // Проверяем, что рецепт существует и принадлежит пользователю
+        const recipe = await Recipe.findOne({
+            where: { recipe_id: recipeId },
+            include: [{ model: User, where: { id: userId }, through: { attributes: [] } }],
+        });
+        if (!recipe) {
+            res.status(404).json({ message: 'Recipe not found or not owned by user' });
+            return;
+        }
+
+        const files = req.files as Express.Multer.File[];
+        if (!files || files.length === 0) {
+            res.status(400).json({ message: 'No images provided' });
+            return;
+        }
+
+        const savedImages = await Promise.all(files.map(file => {
+            const normalizedPath = file.path.replace(/\\/g, '/');
+            return RecipeImage.create({
+                recipe_id: recipeId,
+                image_path: normalizedPath,
+            });
+        }));
+
+        res.status(201).json(savedImages);
+        return;
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+        return;
+    }
+});
+
+
+
+
+
 
 
 
