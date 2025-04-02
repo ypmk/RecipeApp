@@ -26,13 +26,17 @@ interface Recipe {
     time_cooking?: number;
     number_of_servings?: number;
     ingredients?: Ingredient[];
+    main_image: string;
 }
+
+
 
 const RecipeDetails: React.FC = () => {
     const [recipe, setRecipe] = useState<Recipe | null>(null);
     const [loading, setLoading] = useState(true);
     const { id } = useParams<{ id: string }>();
     const recipeId = parseInt(id || '0', 10);
+
 
     useEffect(() => {
         axios
@@ -62,7 +66,7 @@ const RecipeDetails: React.FC = () => {
             {/* Картинка */}
             <div className="w-full aspect-[5/2] rounded-xl overflow-hidden mb-6">
                 <img
-                    src="/pasta.jpg"
+                    src={`${recipe.main_image}`}
                     alt="Recipe Image"
                     className="w-full h-full object-cover"
                 />

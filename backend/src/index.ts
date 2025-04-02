@@ -12,6 +12,7 @@ import IngredientUnits from "./models/IngredientUnits";
 import ingredientRoutes from "./routes/ingredientRoutes";
 import recipeIngredientsRoutes from './routes/recipeIngredients';
 import ingredientUnitsRoutes from "./routes/ingredientUnitsRoutes";
+import path from "path";
 
 
 dotenv.config();
@@ -34,18 +35,11 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/recipes/:recipeId/ingredients', recipeIngredientsRoutes);
 
-
-
 app.use('/api/ingredients', ingredientRoutes);
 
 app.use('/api/ingredient-units', ingredientUnitsRoutes);
 
-
-
-
-app.use('/uploads', express.static('uploads'));
-
-
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 const seedIngredientUnits = async () => {
     const existing = await IngredientUnits.count();

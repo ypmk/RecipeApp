@@ -21,8 +21,10 @@ router.post('/', authenticateJWT, upload.single('main_image'), async (req: Authe
         }
 
         const { name, instructions, time_cooking, number_of_servings } = req.body;
-        // Если файл загружен, его путь будет храниться в req.file.path
-        const imagePath = req.file ? req.file.path : null;
+
+        const imagePath = req.file
+            ? req.file.path.replace(/\\/g, '/')
+            : null;
 
 
         const newRecipe = await Recipe.create({
@@ -77,8 +79,12 @@ router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response
             ],
         });
 
-        res.json(recipes);
-        return;
+        const result = recipes.map(recipe => {
+            const data = recipe.toJSON();
+            data.main_image = data.main_image ? `/${data.main_image}` : '/pasta.jpg';
+            return data;
+        });
+        res.json(result);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
@@ -129,7 +135,13 @@ router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Respo
             return;
         }
 
-        res.json(recipe);
+        const data = recipe.toJSON();
+        if (data.main_image) {
+            data.main_image = `/${data.main_image}`;
+        } else {
+            data.main_image = '/pasta.jpg'; // или null, если не хотите заглушку
+        }
+        res.json(data);
         return;
     } catch (error) {
         console.error(error);
