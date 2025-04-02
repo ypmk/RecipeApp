@@ -51,7 +51,7 @@ function RecipesList() {
                         className="group relative block rounded-md shadow-sm overflow-hidden"
                     >
                         <img
-                            src="/pasta.jpg"
+                            src={`${recipe.main_image}`}
                             alt={recipe.name}
                             className="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105"
                         />

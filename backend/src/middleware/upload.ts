@@ -1,18 +1,15 @@
 import multer from 'multer';
 import path from 'path';
 
-
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
+    destination: (_req, _file, cb) => {
         cb(null, 'uploads/');
     },
-    filename: (req, file, cb) => {
+    filename: (_req, file, cb) => {
         // Можно добавить уникальность, используя timestamp
         cb(null, `${Date.now()}-${file.originalname}`);
     },
 });
-
-
 
 const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
     if (file.mimetype.startsWith('image/')) {
