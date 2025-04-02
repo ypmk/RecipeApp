@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Trash2 } from 'lucide-react';
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 
 interface IngredientInput {
     name: string;
@@ -35,6 +35,7 @@ function CreateRecipe() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [suggestions, setSuggestions] = useState<IngredientSuggestion[][]>([[]]);
     const [showSuggestions, setShowSuggestions] = useState<boolean[]>([false]);
+    const [mainImage, setMainImage] = useState<File | null>(null);
 
     const navigate = useNavigate();
 
@@ -117,38 +118,38 @@ function CreateRecipe() {
         setSuccess(null);
         setIngredientErrors([]);
 
+        // Проверка на дубли ингредиентов (без учета регистра и лишних пробелов)
+        const ingredientNames = ingredients.map((ing) => ing.name.trim().toLowerCase());
+        const duplicates = ingredientNames.filter((name, idx) => ingredientNames.indexOf(name) !== idx);
+        if (duplicates.length > 0) {
+            setError(`Ингредиенты не должны повторяться: ${[...new Set(duplicates)].join(', ')}`);
+            setIsSubmitting(false);
+            return;
+        }
+
         try {
             const token = localStorage.getItem('token');
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-            const ingredientNames = ingredients.map((ing) => ing.name.trim().toLowerCase());
-            const duplicates = ingredientNames.filter(
-                (name, idx) => ingredientNames.indexOf(name) !== idx
-            );
-            if (duplicates.length > 0) {
-                setError(`Ингредиенты не должны повторяться: ${[...new Set(duplicates)].join(', ')}`);
-                setIsSubmitting(false);
-                return;
+            // Формируем FormData для отправки рецепта с главным изображением
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('instructions', instructions);
+            if (timeCooking) formData.append('time_cooking', timeCooking);
+            if (numberOfServings) formData.append('number_of_servings', numberOfServings);
+            if (mainImage) {
+                formData.append('main_image', mainImage);
             }
 
-            const recipeRes = await axios.post(
-                '/api/recipes',
-                {
-                    name,
-                    instructions,
-                    time_cooking: timeCooking ? parseInt(timeCooking, 10) : undefined,
-                    number_of_servings: numberOfServings ? parseInt(numberOfServings, 10) : undefined,
-                },
-                { headers }
-            );
-
+            // Отправка запроса на создание рецепта
+            const recipeRes = await axios.post('/api/recipes', formData, { headers });
             const recipeId = recipeRes.data.recipe_id;
             const errors: string[] = [];
 
+            // Отправка ингредиентов, связанных с рецептом
             for (let i = 0; i < ingredients.length; i++) {
                 const { name, quantity, unit_id } = ingredients[i];
                 if (!name.trim()) continue;
-
                 try {
                     await axios.post(
                         `/api/recipes/${recipeId}/ingredients`,
@@ -169,9 +170,10 @@ function CreateRecipe() {
                 setSuccess('Рецепт создан, но с ошибками по ингредиентам');
             } else {
                 setSuccess('Рецепт успешно создан!');
-                setTimeout(() => navigate('/'), 1000); // плавный переход
+                setTimeout(() => navigate('/'), 1000);
             }
 
+            // Сброс формы
             setName('');
             setInstructions('');
             setTimeCooking('');
@@ -179,6 +181,7 @@ function CreateRecipe() {
             setIngredients([{ name: '', quantity: 1, unit_id: 1 }]);
             setSuggestions([[]]);
             setShowSuggestions([false]);
+            setMainImage(null);
         } catch (err) {
             console.error(err);
             setError('Ошибка при создании рецепта');
@@ -208,6 +211,21 @@ function CreateRecipe() {
                     onChange={(e) => setInstructions(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                 />
+
+                {/* Блок загрузки главного изображения */}
+                <div className="mb-4">
+                    <label className="block font-semibold text-gray-700 mb-2">Главное изображение</label>
+                    <input
+                        type="file"
+                        accept="main_image/*"
+                        onChange={(e) => {
+                            if (e.target.files && e.target.files.length > 0) {
+                                setMainImage(e.target.files[0]);
+                            }
+                        }}
+                        className="w-full"
+                    />
+                </div>
 
                 <div className="flex gap-4">
                     <input
@@ -297,9 +315,7 @@ function CreateRecipe() {
                             </div>
 
                             {ingredientErrors[index] && (
-                                <div className="text-red-500 text-sm mt-1">
-                                    {ingredientErrors[index]}
-                                </div>
+                                <div className="text-red-500 text-sm mt-1">{ingredientErrors[index]}</div>
                             )}
                         </div>
                     ))}

@@ -43,6 +43,9 @@ app.use('/api/ingredient-units', ingredientUnitsRoutes);
 
 
 
+app.use('/uploads', express.static('uploads'));
+
+
 
 const seedIngredientUnits = async () => {
     const existing = await IngredientUnits.count();

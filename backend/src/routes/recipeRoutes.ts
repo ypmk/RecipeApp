@@ -4,7 +4,7 @@ import Recipe from '../models/Recipe';
 import RecipeUser from '../models/RecipeUser';
 import User from '../models/User';
 import {Ingredient, IngredientUnits} from "../models";
-
+import {upload} from "../middleware/upload";
 
 const router = Router();
 
@@ -12,38 +12,41 @@ const router = Router();
  * CREATE - POST /api/recipes
  * Создаём рецепт и привязываем к текущему пользователю через RecipeUser
  */
-router.post('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/', authenticateJWT, upload.single('main_image'), async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const userId = req.user?.id; // ID авторизованного пользователя из токена
+        const userId = req.user?.id;
         if (!userId) {
             res.status(401).json({ message: 'Unauthorized' });
-            return
+            return;
         }
 
         const { name, instructions, time_cooking, number_of_servings } = req.body;
+        // Если файл загружен, его путь будет храниться в req.file.path
+        const imagePath = req.file ? req.file.path : null;
 
-        // 1) Создаём сам рецепт в таблице recipes
+
         const newRecipe = await Recipe.create({
             name,
             instructions,
             time_cooking,
             number_of_servings,
+            main_image: imagePath,
         });
 
-        // 2) Создаём запись в recipe_user, чтобы «привязать» рецепт к пользователю
         await RecipeUser.create({
             user_id: userId,
-            recipe_id: newRecipe.recipe_id, // или newRecipe.id, если поле так называется
+            recipe_id: newRecipe.recipe_id,
         });
 
         res.status(201).json(newRecipe);
-        return
+        return;
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
-        return
+        return;
     }
 });
+
 
 /**
  * READ - GET /api/recipes
