@@ -7,6 +7,7 @@ import {AuthContext} from "../context/AuthContext.tsx";
 interface Recipe {
     recipe_id: number;
     name: string;
+    main_image:string;
 }
 
 function RecipesList() {
