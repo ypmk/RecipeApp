@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { AuthContext } from "../context/AuthContext.tsx";
+import ConfirmModal from './ConfirmModal';
 
 interface Recipe {
     recipe_id: number;
@@ -13,6 +14,33 @@ function RecipesList() {
     const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [loading, setLoading] = useState(true);
     const { user } = useContext(AuthContext);
+
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [recipeToDelete, setRecipeToDelete] = useState<Recipe | null>(null);
+
+    const requestDeleteRecipe = (recipe: Recipe) => {
+        setRecipeToDelete(recipe);
+        setConfirmOpen(true);
+    };
+
+
+    const confirmDeleteRecipe = async () => {
+        if (!recipeToDelete) return;
+
+        try {
+            await axios.delete(`/api/recipes/${recipeToDelete.recipe_id}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+            });
+            setRecipes((prev) => prev.filter((r) => r.recipe_id !== recipeToDelete.recipe_id));
+            setConfirmOpen(false);
+            setRecipeToDelete(null);
+        } catch (err) {
+            console.error('Ошибка удаления:', err);
+        }
+    };
+
 
     useEffect(() => {
         if (!user) {
@@ -35,19 +63,23 @@ function RecipesList() {
     }, [user]);
 
     // Функция для удаления рецепта
-    const handleDeleteRecipe = async (id: number) => {
+    const handleDeleteRecipe = async (recipeId: number) => {
+        const confirmed = window.confirm('Вы уверены, что хотите удалить этот рецепт? Это действие необратимо.');
+        if (!confirmed) return;
+
         try {
-            await axios.delete(`/api/recipes/${id}`);
-            // Обновляем список рецептов, исключая удалённый
-            setRecipes((prev) => prev.filter((recipe) => recipe.recipe_id !== id));
-        } catch (error) {
-            console.error("Ошибка удаления рецепта:", error);
+            await axios.delete(`/api/recipes/${recipeId}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+            });
+            setRecipes((prev) => prev.filter((r) => r.recipe_id !== recipeId));
+        } catch (err) {
+            console.error('Ошибка удаления рецепта:', err);
+            alert('Ошибка при удалении рецепта. Попробуйте позже.');
         }
     };
 
-    if (loading) {
-        return <div className="p-4 text-center">Загрузка рецептов...</div>;
-    }
 
     return (
         <div className="p-4">
@@ -71,18 +103,31 @@ function RecipesList() {
                         {/* Кнопка удаления в правом верхнем углу */}
                         <button
                             onClick={(e) => {
-                                e.stopPropagation(); // предотвращает переход по ссылке
                                 e.preventDefault();
-                                handleDeleteRecipe(recipe.recipe_id);
+                                e.stopPropagation();
+                                requestDeleteRecipe(recipe);
                             }}
                             className="absolute top-2 right-2 bg-white/80 text-gray-600 rounded-full w-8 h-8 flex items-center justify-center hover:bg-white shadow"
                             title="Удалить рецепт"
                         >
                             &times;
                         </button>
+
                     </div>
                 ))}
             </div>
+
+            <ConfirmModal
+                isOpen={confirmOpen}
+                title="Удаление рецепта"
+                message={`Вы действительно хотите удалить рецепт «${recipeToDelete?.name}»?`}
+                onCancel={() => {
+                    setConfirmOpen(false);
+                    setRecipeToDelete(null);
+                }}
+                onConfirm={confirmDeleteRecipe}
+            />
+
         </div>
     );
 }
