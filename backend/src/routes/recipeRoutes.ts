@@ -307,6 +307,56 @@ router.post('/:id/images', authenticateJWT, upload.array('images', 5), async (re
 
 
 
+/**
+ * GET /api/recipes/:id/images
+ * Получает все дополнительные изображения для рецепта.
+ */
+router.get('/:id/images', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            res.status(401).json({ message: 'Unauthorized' });
+            return;
+        }
+
+        const recipeId = parseInt(req.params.id, 10);
+
+        // Проверяем, что рецепт существует и принадлежит пользователю
+        const recipe = await Recipe.findOne({
+            where: { recipe_id: recipeId },
+            include: [{
+                model: User,
+                where: { id: userId },
+                through: { attributes: [] },
+            }],
+        });
+
+        if (!recipe) {
+            res.status(404).json({ message: 'Recipe not found or not owned by user' });
+            return;
+        }
+
+        // Получаем все изображения для рецепта
+        const images = await RecipeImage.findAll({
+            where: { recipe_id: recipeId },
+            order: [['createdAt', 'ASC']],
+        });
+
+        // Преобразуем путь к изображению, добавляя ведущий слэш (если его нет)
+        const transformedImages = images.map(image => {
+            const data = image.toJSON();
+            data.image_path = data.image_path.startsWith('/') ? data.image_path : `/${data.image_path}`;
+            return data;
+        });
+
+        res.json(transformedImages);
+        return;
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+        return;
+    }
+});
 
 
 

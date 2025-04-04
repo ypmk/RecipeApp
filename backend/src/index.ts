@@ -41,6 +41,9 @@ app.use('/api/ingredient-units', ingredientUnitsRoutes);
 
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
+
+
+
 const seedIngredientUnits = async () => {
     const existing = await IngredientUnits.count();
     if (existing === 0) {
@@ -51,9 +54,6 @@ const seedIngredientUnits = async () => {
         console.log('Единицы измерения уже существуют');
     }
 };
-
-
-
 
 
 const PORT = process.env.PORT || 3000;
