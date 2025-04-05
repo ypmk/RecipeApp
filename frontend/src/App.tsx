@@ -10,9 +10,9 @@ import Lists from "./pages/Lists.tsx";
 import RecipesList from "./components/RecipesList.tsx";
 import './api/axiosConfig'
 import RecipeDetailsPage from "./pages/RecipeDetailsPage.tsx";
-import CreateRecipe from "./components/CreateRecipe.tsx";
 import {AuthProvider} from "./context/AuthContext.tsx";
-import EditRecipe from "./pages/EditRecipe.tsx";
+import EditRecipePage from "./pages/EditRecipePage.tsx";
+import CreateRecipePage from "./pages/CreateRecipePage.tsx";
 
 const App: React.FC = () => {
     return (
@@ -39,9 +39,9 @@ const App: React.FC = () => {
                     <Route path="/recipes" element={<RecipesList />} />
                     <Route path="/recipes/:id" element={<RecipeDetailsPage />} />
 
-                    <Route path="/createRecipe" element={<CreateRecipe />} />
+                    <Route path="/createRecipe" element={<CreateRecipePage />} />
 
-                    <Route path="/recipes/:id/edit" element={<EditRecipe />} />
+                    <Route path="/recipes/:id/edit" element={<EditRecipePage />} />
 
                 </Routes>
             </AuthProvider>
