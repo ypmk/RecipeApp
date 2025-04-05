@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useParams } from 'react-router-dom';
+import {useNavigate, useParams} from 'react-router-dom';
 import Lightbox from "react-image-lightbox";
 import 'react-image-lightbox/style.css';
 
@@ -53,6 +53,8 @@ const RecipeDetails: React.FC = () => {
     const [photoIndex, setPhotoIndex] = useState(0);
     const [allImages, setAllImages] = useState<string[]>([]);
 
+    const navigate = useNavigate();
+
     useEffect(() => {
         axios
             .get<Recipe>(`/api/recipes/${recipeId}`, {
@@ -92,7 +94,32 @@ const RecipeDetails: React.FC = () => {
 
     return (
         <div className="px-10 py-6 max-w-4xl mx-auto font-['Plus_Jakarta_Sans','Noto_Sans',sans-serif]">
-            <h1 className="text-3xl font-black text-[#1C160C] mb-4">{recipe.name}</h1>
+
+
+            <div className="flex items-center justify-between mb-4">
+                <h1 className="text-3xl font-black text-[#1C160C]">{recipe.name}</h1>
+                <button
+                    onClick={() => navigate(`/recipes/${recipe?.recipe_id}/edit`)}
+                    className="
+            flex items-center gap-2
+            px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md
+            shadow-sm hover:bg-blue-700 transition
+        "
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 4h10M5 20h10M4 4l16 16" />
+                    </svg>
+                    Редактировать
+                </button>
+            </div>
+
 
             {/* Главное изображение */}
             <div className="w-full aspect-[5/2] rounded-xl overflow-hidden mb-6">

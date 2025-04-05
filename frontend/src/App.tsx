@@ -12,6 +12,7 @@ import './api/axiosConfig'
 import RecipeDetailsPage from "./pages/RecipeDetailsPage.tsx";
 import CreateRecipe from "./components/CreateRecipe.tsx";
 import {AuthProvider} from "./context/AuthContext.tsx";
+import EditRecipe from "./pages/EditRecipe.tsx";
 
 const App: React.FC = () => {
     return (
@@ -39,6 +40,8 @@ const App: React.FC = () => {
                     <Route path="/recipes/:id" element={<RecipeDetailsPage />} />
 
                     <Route path="/createRecipe" element={<CreateRecipe />} />
+
+                    <Route path="/recipes/:id/edit" element={<EditRecipe />} />
 
                 </Routes>
             </AuthProvider>

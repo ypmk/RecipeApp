@@ -3,7 +3,7 @@ import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth';
 import Recipe from '../models/Recipe';
 import RecipeUser from '../models/RecipeUser';
 import User from '../models/User';
-import {Ingredient, IngredientUnits} from "../models";
+import {Ingredient, IngredientUnits, RecipesIngredients} from "../models";
 import {upload} from "../middleware/upload";
 import RecipeImage from "../models/RecipeImage";
 
@@ -164,12 +164,12 @@ router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Respo
  * UPDATE - PUT /api/recipes/:id
  * Обновить рецепт, если он принадлежит текущему пользователю
  */
-router.put('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+router.put('/:id', authenticateJWT, upload.single('main_image'), async (req: AuthenticatedRequest, res: Response) => {
     try {
         const userId = req.user?.id;
         if (!userId) {
             res.status(401).json({ message: 'Unauthorized' });
-            return
+            return;
         }
 
         const recipeId = parseInt(req.params.id, 10);
@@ -178,34 +178,36 @@ router.put('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Respo
         // Проверяем, что рецепт принадлежит пользователю
         const recipe = await Recipe.findOne({
             where: { recipe_id: recipeId },
-            include: [
-                {
-                    model: User,
-                    where: { id: userId },
-                    through: { attributes: [] },
-                },
-            ],
+            include: [{
+                model: User,
+                where: { id: userId },
+                through: { attributes: [] },
+            }],
         });
 
         if (!recipe) {
             res.status(404).json({ message: 'Recipe not found or not owned by user' });
-            return
+            return;
         }
 
-        // Обновляем нужные поля
+        // Обновляем поля рецепта
         if (name !== undefined) recipe.name = name;
         if (instructions !== undefined) recipe.instructions = instructions;
         if (time_cooking !== undefined) recipe.time_cooking = time_cooking;
         if (number_of_servings !== undefined) recipe.number_of_servings = number_of_servings;
 
+        // Если передан новый файл главного изображения, обновляем его
+        if (req.file) {
+            const imagePath = req.file.path.replace(/\\/g, '/');
+            recipe.main_image = imagePath;
+        }
+
         await recipe.save();
 
         res.json(recipe);
-        return
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
-        return
     }
 });
 
@@ -359,6 +361,182 @@ router.get('/:id/images', authenticateJWT, async (req: AuthenticatedRequest, res
 });
 
 
+/**
+ * DELETE /api/recipes/:recipeId/images/:imageId
+ * Удалить одно дополнительное изображение рецепта, если пользователь владеет рецептом
+ */
+router.delete('/:recipeId/images/:imageId', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+           res.status(401).json({ message: 'Unauthorized' });
+           return
+        }
+
+        const recipeId = parseInt(req.params.recipeId, 10);
+        const imageId = parseInt(req.params.imageId, 10);
+
+        // Проверяем, что рецепт существует и принадлежит пользователю
+        const recipe = await Recipe.findOne({
+            where: { recipe_id: recipeId },
+            include: [{
+                model: User,
+                where: { id: userId },
+                through: { attributes: [] },
+            }],
+        });
+
+        if (!recipe) {
+            res.status(404).json({ message: 'Recipe not found or not owned by user' });
+            return
+        }
+
+        // Проверяем, что изображение принадлежит этому рецепту
+        const image = await RecipeImage.findOne({
+            where: { id: imageId, recipe_id: recipeId },
+        });
+
+        if (!image) {
+            res.status(404).json({ message: 'Image not found or not owned by user' });
+            return
+        }
+
+        await image.destroy();
+
+        res.json({ message: 'Image deleted' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+
+
+/**
+ * PUT /api/recipes/:recipeId/ingredients/:ingredientId
+ * Обновляет ингредиент в рецепте: имя, единицу измерения и количество.
+ */
+router.put('/:recipeId/ingredients/:ingredientId', authenticateJWT, async (req: AuthenticatedRequest, res) => {
+    try {
+        const userId = req.user?.id;
+        const recipeId = parseInt(req.params.recipeId, 10);
+        const ingredientId = parseInt(req.params.ingredientId, 10);
+        const { name, unit_id, quantity } = req.body;
+
+        if (!userId) {
+            res.status(401).json({ message: 'Unauthorized' });
+            return
+        }
+
+        // Проверка принадлежности рецепта пользователю
+        const recipe = await Recipe.findOne({
+            where: { recipe_id: recipeId },
+            include: [{
+                model: User,
+                where: { id: userId },
+                through: { attributes: [] },
+            }],
+        });
+
+        if (!recipe) {
+            res.status(404).json({ message: 'Recipe not found or not owned by user' });
+            return
+        }
+
+        // Обновляем количество в связующей таблице
+        const link = await RecipesIngredients.findOne({
+            where: { recipe_id: recipeId, ingredient_id: ingredientId },
+        });
+
+        if (!link) {
+            res.status(404).json({ message: 'Ingredient link not found for this recipe' });
+            return
+        }
+
+        if (quantity !== undefined) {
+            link.quantity = quantity;
+            await link.save();
+        }
+
+        // Обновляем сам ингредиент (название и единицу измерения)
+        const ingredient = await Ingredient.findOne({ where: { ingredient_id: ingredientId, user_id: userId } });
+
+        if (!ingredient) {
+            res.status(404).json({ message: 'Ingredient not found or not owned by user' });
+            return
+        }
+
+        if (name !== undefined) {
+            ingredient.name = name;
+        }
+
+        if (unit_id !== undefined) {
+            ingredient.unit_id = unit_id;
+        }
+
+        await ingredient.save();
+
+        res.json({ message: 'Ingredient updated successfully' });
+        return
+    } catch (error) {
+        console.error('Ошибка при обновлении ингредиента:', error);
+        res.status(500).json({ message: 'Server error' });
+        return
+    }
+});
+
+
+/**
+ * DELETE /api/recipes/:recipeId/ingredients/:ingredientId
+ * Удаляет связь ингредиента с рецептом (и опционально сам ингредиент, если хочешь).
+ */
+router.delete('/:recipeId/ingredients/:ingredientId', authenticateJWT, async (req: AuthenticatedRequest, res) => {
+    try {
+        const userId = req.user?.id;
+        const recipeId = parseInt(req.params.recipeId, 10);
+        const ingredientId = parseInt(req.params.ingredientId, 10);
+
+        if (!userId) {
+            res.status(401).json({ message: 'Unauthorized' });
+            return
+        }
+
+        // Проверяем, что рецепт принадлежит пользователю
+        const recipe = await Recipe.findOne({
+            where: { recipe_id: recipeId },
+            include: [{
+                model: User,
+                where: { id: userId },
+                through: { attributes: [] },
+            }],
+        });
+
+        if (!recipe) {
+            res.status(404).json({ message: 'Recipe not found or not owned by user' });
+            return
+        }
+
+        // Удаляем связь из таблицы recipes_ingredients
+        const deleted = await RecipesIngredients.destroy({
+            where: {
+                recipe_id: recipeId,
+                ingredient_id: ingredientId,
+            },
+        });
+
+        if (!deleted) {
+            res.status(404).json({ message: 'Ingredient not linked to recipe' });
+            return
+        }
+
+        res.json({ message: 'Ingredient removed from recipe' });
+        return
+    } catch (error) {
+        console.error('Ошибка при удалении ингредиента из рецепта:', error);
+        res.status(500).json({ message: 'Server error' });
+        return
+    }
+});
 
 
 
