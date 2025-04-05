@@ -509,17 +509,14 @@ const EditRecipe: React.FC = () => {
                             type="button"
                             onClick={handleAddIngredient}
                             className="
-      px-4 py-2 bg-white text-orange-500 border border-orange-500
-      rounded-lg font-semibold hover:bg-orange-50 transition
-      flex items-center gap-2
-    "
+                              px-4 py-2 bg-white text-orange-500 border border-orange-500
+                              rounded-lg font-semibold hover:bg-orange-50 transition
+                              flex items-center gap-2
+                            "
                         >
                             <span className="text-lg">+</span> <span>Добавить ингредиент</span>
                         </button>
                     </div>
-
-
-
 
 
                 </div>
