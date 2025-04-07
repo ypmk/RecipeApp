@@ -3,32 +3,27 @@ import axios from 'axios';
 import {useNavigate, useParams} from 'react-router-dom';
 import Lightbox from "react-image-lightbox";
 import 'react-image-lightbox/style.css';
+import RecipeCollectionsSelector from './RecipeCollectionsSelector'; // Импортируем компонент
 
-// Интерфейс для связующей записи, содержащей количество
+// Интерфейсы для рецепта и ингредиентов (оставляем ваши)
 interface RecipeIngredientInfo {
     quantity: number;
 }
 
-// Интерфейс для ингредиента
 interface Ingredient {
     ingredient_id: number;
     name: string;
-    // Связь RecipesIngredients, где хранится количество для этого рецепта
     RecipesIngredients: RecipeIngredientInfo;
     IngredientUnit?: {
         name: string;
     };
 }
 
-
-// Интерфейс для дополнительных изображений рецепта
 interface RecipeImage {
     id: number;
     image_path: string;
 }
 
-
-// Интерфейс для рецепта с ингредиентами
 interface Recipe {
     recipe_id: number;
     name: string;
@@ -40,8 +35,6 @@ interface Recipe {
     images?: RecipeImage[];
 }
 
-
-
 const RecipeDetails: React.FC = () => {
     const [recipe, setRecipe] = useState<Recipe | null>(null);
     const [loading, setLoading] = useState(true);
@@ -52,6 +45,9 @@ const RecipeDetails: React.FC = () => {
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
     const [photoIndex, setPhotoIndex] = useState(0);
     const [allImages, setAllImages] = useState<string[]>([]);
+
+    // Состояние для отображения окна коллекций
+    const [showCollections, setShowCollections] = useState(false);
 
     const navigate = useNavigate();
 
@@ -78,7 +74,6 @@ const RecipeDetails: React.FC = () => {
                         images.push(url);
                     });
                 }
-                console.log('allImages:', images);
                 setAllImages(images);
                 setRecipe(data);
                 setLoading(false);
@@ -94,41 +89,31 @@ const RecipeDetails: React.FC = () => {
 
     return (
         <div className="px-10 py-6 max-w-4xl mx-auto font-['Plus_Jakarta_Sans','Noto_Sans',sans-serif]">
-
-
             <div className="flex items-center justify-between mb-4">
                 <h1 className="text-3xl font-black text-[#1C160C]">{recipe.name}</h1>
-                <button
-                    onClick={() => navigate(`/recipes/${recipe?.recipe_id}/edit`)}
-                    className="
-            flex items-center gap-2
-            px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md
-            shadow-sm hover:bg-blue-700 transition
-        "
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="w-4 h-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setShowCollections(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-yellow-400 text-black text-sm font-medium rounded-md hover:bg-yellow-500 transition shadow"
                     >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 4h10M5 20h10M4 4l16 16" />
-                    </svg>
-                    Редактировать
-                </button>
+                        + В коллекцию
+                    </button>
+                    <button
+                        onClick={() => navigate(`/recipes/${recipe.recipe_id}/edit`)}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-blue-700 transition"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M11 4h10M5 20h10M4 4l16 16" />
+                        </svg>
+                        Редактировать
+                    </button>
+                </div>
             </div>
-
 
             {/* Главное изображение */}
             <div className="w-full aspect-[5/2] rounded-xl overflow-hidden mb-6">
                 <img
-                    src={
-                        recipe.main_image.startsWith('/')
-                            ? recipe.main_image
-                            : `/${recipe.main_image}`
-                    }
+                    src={recipe.main_image.startsWith('/') ? recipe.main_image : `/${recipe.main_image}`}
                     alt="Главное изображение рецепта"
                     className="w-full h-full object-cover cursor-pointer"
                     onClick={() => {
@@ -138,15 +123,12 @@ const RecipeDetails: React.FC = () => {
                 />
             </div>
 
-            {/* Ингредиенты */}
+            {/* Остальной контент рецепта */}
             <h2 className="text-[22px] font-bold text-[#1C160C] px-4 pb-3">Ингредиенты:</h2>
             <div className="p-4 grid grid-cols-[20%_1fr] gap-x-6">
                 {recipe.ingredients && recipe.ingredients.length > 0 ? (
                     recipe.ingredients.map((ingredient) => (
-                        <div
-                            key={ingredient.ingredient_id}
-                            className="col-span-2 grid grid-cols-subgrid border-t border-t-[#E9DFCE] py-5"
-                        >
+                        <div key={ingredient.ingredient_id} className="col-span-2 grid grid-cols-subgrid border-t border-t-[#E9DFCE] py-5">
                             <p className="text-[#A18249] text-sm">{ingredient.name}</p>
                             <p className="text-[#1C160C] text-sm">
                                 {ingredient.RecipesIngredients.quantity}{' '}
@@ -159,7 +141,6 @@ const RecipeDetails: React.FC = () => {
                 )}
             </div>
 
-            {/* Инструкции */}
             {recipe.instructions && (
                 <>
                     <h2 className="text-[22px] font-bold text-[#1C160C] px-4 pb-3 pt-5">
@@ -171,7 +152,6 @@ const RecipeDetails: React.FC = () => {
                 </>
             )}
 
-            {/* Время приготовления */}
             {recipe.time_cooking && (
                 <>
                     <h2 className="text-[22px] font-bold text-[#1C160C] px-4 pb-3 pt-5">
@@ -186,7 +166,6 @@ const RecipeDetails: React.FC = () => {
                 </>
             )}
 
-            {/* Количество порций */}
             {recipe.number_of_servings && (
                 <>
                     <h2 className="text-[22px] font-bold text-[#1C160C] px-4 pb-3 pt-5">
@@ -200,18 +179,12 @@ const RecipeDetails: React.FC = () => {
                 </>
             )}
 
-            {/* Дополнительные изображения */}
             {recipe.images && recipe.images.length > 0 && (
                 <div className="mb-6">
-                    <h2 className="text-xl font-bold text-[#1C160C] mb-4">
-                        Дополнительные изображения
-                    </h2>
+                    <h2 className="text-xl font-bold text-[#1C160C] mb-4">Дополнительные изображения</h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         {recipe.images.map((img, index) => {
-                            const imageUrl = img.image_path.startsWith('/')
-                                ? img.image_path
-                                : `/${img.image_path}`;
-                            // Сдвигаем индекс на 1, так как главное изображение занимает 0-й индекс
+                            const imageUrl = img.image_path.startsWith('/') ? img.image_path : `/${img.image_path}`;
                             const sliderIndex = index + 1;
                             return (
                                 <div key={img.id} className="w-full h-32 overflow-hidden rounded-lg">
@@ -231,25 +204,25 @@ const RecipeDetails: React.FC = () => {
                 </div>
             )}
 
-            {/* Lightbox */}
             {isLightboxOpen && allImages.length > 0 && (
                 <Lightbox
                     mainSrc={allImages[photoIndex]}
                     nextSrc={allImages[(photoIndex + 1) % allImages.length]}
                     prevSrc={allImages[(photoIndex + allImages.length - 1) % allImages.length]}
                     onCloseRequest={() => setIsLightboxOpen(false)}
-                    onMovePrevRequest={() =>
-                        setPhotoIndex((photoIndex + allImages.length - 1) % allImages.length)
-                    }
-                    onMoveNextRequest={() =>
-                        setPhotoIndex((photoIndex + 1) % allImages.length)
-                    }
+                    onMovePrevRequest={() => setPhotoIndex((photoIndex + allImages.length - 1) % allImages.length)}
+                    onMoveNextRequest={() => setPhotoIndex((photoIndex + 1) % allImages.length)}
                     enableZoom={true}
                 />
             )}
 
-
-
+            {/* Отображаем модальное окно для работы с коллекциями */}
+            {showCollections && (
+                <RecipeCollectionsSelector
+                    recipeId={recipe.recipe_id}
+                    onClose={() => setShowCollections(false)}
+                />
+            )}
         </div>
     );
 };

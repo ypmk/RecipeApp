@@ -5,6 +5,8 @@ import FilterBar from "../components/FilterBar.tsx";
 import AddButton from "../components/AddButton.tsx";
 import RecipesList from "../components/RecipesList.tsx";
 
+
+
 const Home: React.FC = () => {
     return (
         <div className="min-h-screen flex flex-col bg-[#F8F9FB] font-['Plus Jakarta Sans','Noto Sans',sans-serif]">

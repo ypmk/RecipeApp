@@ -13,6 +13,7 @@ import ingredientRoutes from "./routes/ingredientRoutes";
 import recipeIngredientsRoutes from './routes/recipeIngredients';
 import ingredientUnitsRoutes from "./routes/ingredientUnitsRoutes";
 import path from "path";
+import collectionRoutes from "./routes/collectionRoutes";
 
 
 dotenv.config();
@@ -20,28 +21,29 @@ dotenv.config();
 const app = express();
 
 app.use(json());
-
 app.use(express.json());
-
 app.use(cors({
     origin: 'http://localhost:5173'
 }));
 
 // Маршруты авторизации (регистрация/логин)
 app.use('/api', authRoutes);
-// Маршруты, защищённые авторизацией (например, для админа)
+// Маршруты для админа
 app.use('/api/admin', adminRoutes);
 
+// Маршруты рецептов
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/recipes/:recipeId/ingredients', recipeIngredientsRoutes);
 
+// Маршруты ингредиентов
 app.use('/api/ingredients', ingredientRoutes);
-
 app.use('/api/ingredient-units', ingredientUnitsRoutes);
 
+// Статическая папка для загрузок
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-
+// Маршруты коллекций
+app.use('/api/collections', collectionRoutes);
 
 
 const seedIngredientUnits = async () => {

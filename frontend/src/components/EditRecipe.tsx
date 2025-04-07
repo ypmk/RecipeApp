@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
-import {Plus, Trash2} from 'lucide-react';
+import {Trash2} from 'lucide-react';
 
 interface RecipeIngredientInfo {
     quantity: number;

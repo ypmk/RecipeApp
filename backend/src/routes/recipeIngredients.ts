@@ -9,7 +9,7 @@ const router = Router({ mergeParams: true });
  * POST /api/recipes/:recipeId/ingredients
  * Добавляет ингредиент к рецепту.
  * Если ингредиент с таким именем уже существует у пользователя, он не создаётся заново,
- * а создаётся запись в таблице recipes_ingredients с указанным количеством.
+ * а.tsx создаётся запись в таблице recipes_ingredients с указанным количеством.
  * Если такой ингредиент уже добавлен к рецепту, возвращаем 409 Conflict.
  */
 router.post('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
