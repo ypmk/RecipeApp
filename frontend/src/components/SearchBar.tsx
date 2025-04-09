@@ -1,6 +1,12 @@
-// components/SearchBar.tsx
+// SearchBar.tsx
+import React from 'react';
 
-const SearchBar = () => {
+interface SearchBarProps {
+    search: string;
+    onSearchChange: (value: string) => void;
+}
+
+const SearchBar: React.FC<SearchBarProps> = ({ search, onSearchChange }) => {
     return (
         <div className="px-4 py-3">
             <label className="flex flex-col h-12 w-full">
@@ -18,6 +24,8 @@ const SearchBar = () => {
                     <input
                         className="flex-1 bg-[#E4E9F1] text-[#141C24] placeholder-[#3F5374] px-4 text-base font-normal focus:outline-none"
                         type="text"
+                        value={search}
+                        onChange={(e) => onSearchChange(e.target.value)}
                         placeholder="Введите название рецепта..."
                     />
                 </div>

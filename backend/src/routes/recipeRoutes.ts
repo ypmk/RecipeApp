@@ -6,6 +6,7 @@ import User from '../models/User';
 import {Ingredient, IngredientUnits, RecipesIngredients} from "../models";
 import {upload} from "../middleware/upload";
 import RecipeImage from "../models/RecipeImage";
+import {Op} from "sequelize";
 
 const router = Router();
 
@@ -54,6 +55,7 @@ router.post('/', authenticateJWT, upload.single('main_image'), async (req: Authe
 /**
  * READ - GET /api/recipes
  * Получаем все рецепты, связанные с текущим пользователем
+ * Если передан query-параметр search, фильтруем по названию рецепта.
  */
 router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -63,8 +65,16 @@ router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response
             return;
         }
 
-        // Ищем все рецепты, связанные с пользователем и включаем ингредиенты
+        const search = req.query.search as string | undefined;
+        const whereClause: any = {};
+
+        // Если есть параметр поиска, добавляем условие фильтрации
+        if (search) {
+            whereClause.name = { [Op.iLike]: `%${search}%` };
+        }
+
         const recipes = await Recipe.findAll({
+            where: whereClause,
             include: [
                 {
                     model: User,
@@ -74,7 +84,6 @@ router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response
                 {
                     model: Ingredient,
                     as: 'ingredients',
-                    // Включаем поля из связывающей таблицы (например, количество)
                     through: { attributes: ['quantity'] },
                 },
             ],
@@ -86,6 +95,7 @@ router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response
             return data;
         });
         res.json(result);
+        return;
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });

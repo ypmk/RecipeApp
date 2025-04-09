@@ -1,18 +1,23 @@
+// RecipesList.tsx
 import { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import { AuthContext } from "../context/AuthContext.tsx";
+import { AuthContext } from "../context/AuthContext";
 import ConfirmModal from './ConfirmModal';
 
-interface Recipe {
+export interface Recipe {
     recipe_id: number;
     name: string;
     main_image: string;
 }
 
-function RecipesList() {
+interface RecipesListProps {
+    search: string;
+}
+
+const RecipesList: React.FC<RecipesListProps> = ({ search }) => {
     const [recipes, setRecipes] = useState<Recipe[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [, setLoading] = useState(true);
     const { user } = useContext(AuthContext);
 
     const [confirmOpen, setConfirmOpen] = useState(false);
@@ -22,7 +27,6 @@ function RecipesList() {
         setRecipeToDelete(recipe);
         setConfirmOpen(true);
     };
-
 
     const confirmDeleteRecipe = async () => {
         if (!recipeToDelete) return;
@@ -41,7 +45,6 @@ function RecipesList() {
         }
     };
 
-
     useEffect(() => {
         if (!user) {
             setRecipes([]);
@@ -49,8 +52,10 @@ function RecipesList() {
         }
 
         axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('token')}`;
+        // Формируем URL с query-параметром search, если он есть
+        const url = `/api/recipes${search ? `?search=${encodeURIComponent(search)}` : ''}`;
         axios
-            .get<Recipe[]>('/api/recipes')
+            .get<Recipe[]>(url)
             .then((res) => {
                 console.log('GET /api/recipes =>', res.data);
                 setRecipes(res.data);
@@ -60,33 +65,13 @@ function RecipesList() {
                 console.error(err);
                 setLoading(false);
             });
-    }, [user]);
-
-    // Функция для удаления рецепта
-    const handleDeleteRecipe = async (recipeId: number) => {
-        const confirmed = window.confirm('Вы уверены, что хотите удалить этот рецепт? Это действие необратимо.');
-        if (!confirmed) return;
-
-        try {
-            await axios.delete(`/api/recipes/${recipeId}`, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                },
-            });
-            setRecipes((prev) => prev.filter((r) => r.recipe_id !== recipeId));
-        } catch (err) {
-            console.error('Ошибка удаления рецепта:', err);
-            alert('Ошибка при удалении рецепта. Попробуйте позже.');
-        }
-    };
-
+    }, [user, search]);
 
     return (
         <div className="p-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {recipes.map((recipe) => (
                     <div key={recipe.recipe_id} className="relative group">
-                        {/* Обёртка Link ведёт к подробностям рецепта */}
                         <Link
                             to={`/recipes/${recipe.recipe_id}`}
                             className="block rounded-md shadow-sm overflow-hidden"
@@ -100,7 +85,6 @@ function RecipesList() {
                                 {recipe.name}
                             </div>
                         </Link>
-                        {/* Кнопка удаления в правом верхнем углу */}
                         <button
                             onClick={(e) => {
                                 e.preventDefault();
@@ -112,7 +96,6 @@ function RecipesList() {
                         >
                             &times;
                         </button>
-
                     </div>
                 ))}
             </div>
@@ -127,9 +110,8 @@ function RecipesList() {
                 }}
                 onConfirm={confirmDeleteRecipe}
             />
-
         </div>
     );
-}
+};
 
 export default RecipesList;

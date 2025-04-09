@@ -13,7 +13,7 @@ import {AuthProvider} from "./context/AuthContext.tsx";
 import EditRecipePage from "./pages/EditRecipePage.tsx";
 import CreateRecipePage from "./pages/CreateRecipePage.tsx";
 import CollectionDetailsPage from "./pages/CollectionDetailsPage.tsx";
-import PlannerPage from "./pages/PlannerPage.tsx";
+import PlanerPage from "./pages/PlanerPage.tsx";
 
 const App: React.FC = () => {
     return (
@@ -34,7 +34,7 @@ const App: React.FC = () => {
                     <Route path="/register" element={<Register />} />
 
                     <Route path="/collections" element={<CollectionsListPage />} />
-                    <Route path="/planner" element={<PlannerPage />} />
+                    <Route path="/planner" element={<PlanerPage />} />
                     <Route path="/lists" element={<Lists />} />
 
                     <Route path="/recipes" element={<RecipesList />} />
