@@ -122,7 +122,7 @@ Recipe.belongsToMany(Collections, {
     through: CollectionsRecipes,
     foreignKey: 'recipe_id',
     otherKey: 'collection_id',
-    as: 'recipes'
+    as: 'collections'
 });
 
 /**

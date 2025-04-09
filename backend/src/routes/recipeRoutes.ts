@@ -3,7 +3,7 @@ import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth';
 import Recipe from '../models/Recipe';
 import RecipeUser from '../models/RecipeUser';
 import User from '../models/User';
-import {Ingredient, IngredientUnits, RecipesIngredients} from "../models";
+import {Collections, Ingredient, IngredientUnits, RecipesIngredients} from "../models";
 import {upload} from "../middleware/upload";
 import RecipeImage from "../models/RecipeImage";
 import {Op} from "sequelize";
@@ -85,6 +85,12 @@ router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response
                     model: Ingredient,
                     as: 'ingredients',
                     through: { attributes: ['quantity'] },
+                },
+                {
+                    model: Collections,
+                    as: 'collections',
+                    // Если не нужен список полей из связывающей таблицы, можно скрыть:
+                    through: { attributes: [] },
                 },
             ],
         });
