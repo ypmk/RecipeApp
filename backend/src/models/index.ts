@@ -99,7 +99,7 @@ MealPlanRecipes.belongsTo(MealPlans, { foreignKey: 'meal_plan_id' });
 Recipe.hasMany(MealPlanRecipes, { foreignKey: 'recipe_id' });
 MealPlanRecipes.belongsTo(Recipe, { foreignKey: 'recipe_id' });
 
-/** ---------- Связь Collections <-> Users через CollectionUsers (many-to-many) ---------- */
+/** ---------- Связь CollectionsListPage <-> Users через CollectionUsers (many-to-many) ---------- */
 User.belongsToMany(Collections, {
     through: CollectionUsers,
     foreignKey: 'user_id',
@@ -111,16 +111,18 @@ Collections.belongsToMany(User, {
     otherKey: 'user_id',
 });
 
-/** ---------- Связь Collections <-> Recipes через CollectionsRecipes (many-to-many) ---------- */
+/** ---------- Связь CollectionsListPage <-> Recipes через CollectionsRecipes (many-to-many) ---------- */
 Collections.belongsToMany(Recipe, {
     through: CollectionsRecipes,
     foreignKey: 'collection_id',
     otherKey: 'recipe_id',
+    as: 'recipes'
 });
 Recipe.belongsToMany(Collections, {
     through: CollectionsRecipes,
     foreignKey: 'recipe_id',
     otherKey: 'collection_id',
+    as: 'recipes'
 });
 
 /**

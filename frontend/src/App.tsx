@@ -4,8 +4,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import './index.css';
-import Collections from "./pages/Collections.tsx";
-import Planner from "./pages/Planner.tsx";
+import CollectionsListPage from "./pages/CollectionsListPage.tsx";
 import Lists from "./pages/Lists.tsx";
 import RecipesList from "./components/RecipesList.tsx";
 import './api/axiosConfig'
@@ -13,6 +12,8 @@ import RecipeDetailsPage from "./pages/RecipeDetailsPage.tsx";
 import {AuthProvider} from "./context/AuthContext.tsx";
 import EditRecipePage from "./pages/EditRecipePage.tsx";
 import CreateRecipePage from "./pages/CreateRecipePage.tsx";
+import CollectionDetailsPage from "./pages/CollectionDetailsPage.tsx";
+import PlannerPage from "./pages/PlannerPage.tsx";
 
 const App: React.FC = () => {
     return (
@@ -27,21 +28,22 @@ const App: React.FC = () => {
                 */}
 
                 <Routes>
-                    <Route path="/" element={<Home />} />
+                    <Route path="/" element={<Login />} />
+                    <Route path="/main" element={<Home />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
 
-                    <Route path="/collections" element={<Collections />} />
-
-                    <Route path="/planner" element={<Planner />} />
+                    <Route path="/collections" element={<CollectionsListPage />} />
+                    <Route path="/planner" element={<PlannerPage />} />
                     <Route path="/lists" element={<Lists />} />
 
                     <Route path="/recipes" element={<RecipesList />} />
                     <Route path="/recipes/:id" element={<RecipeDetailsPage />} />
-
                     <Route path="/createRecipe" element={<CreateRecipePage />} />
-
                     <Route path="/recipes/:id/edit" element={<EditRecipePage />} />
+
+                    <Route path="/collections" element={<CollectionsListPage />} />
+                    <Route path="/collections/:collectionId" element={<CollectionDetailsPage />} />
 
                 </Routes>
             </AuthProvider>

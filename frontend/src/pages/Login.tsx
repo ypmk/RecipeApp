@@ -35,7 +35,7 @@ const Login: React.FC = () => {
             const decoded = jwtDecode<User>(data.token);
             setUser(decoded);
 
-            navigate('/');
+            navigate('/main');
         } catch (error) {
             console.error(error);
             alert('Произошла ошибка при входе.');

@@ -1,4 +1,4 @@
-import {Collections, CollectionsRecipes, CollectionUsers} from "../models";
+import {Collections, CollectionsRecipes, CollectionUsers, Recipe} from "../models";
 import {Router} from "express";
 import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth';
 
@@ -41,7 +41,7 @@ router.get('/:recipeId/collections',authenticateJWT, async (req:AuthenticatedReq
 
 
 // Добавление рецепта в существующую коллекцию
-router.post('/:recipeId/collections/:collectionId',authenticateJWT, async (req:AuthenticatedRequest, res) => {
+router.post('/:recipeId/collections/:collectionId', authenticateJWT, async (req: AuthenticatedRequest, res) => {
     try {
         const { recipeId, collectionId } = req.params;
 
@@ -51,7 +51,7 @@ router.post('/:recipeId/collections/:collectionId',authenticateJWT, async (req:A
         });
         if (exists) {
             res.status(400).json({ message: 'Рецепт уже добавлен в эту коллекцию' });
-            return
+            return;
         }
 
         // Создаем связь между рецептом и коллекцией
@@ -59,12 +59,20 @@ router.post('/:recipeId/collections/:collectionId',authenticateJWT, async (req:A
             recipe_id: +recipeId,
             collection_id: +collectionId
         });
+
+        // Обновляем коллекцию, чтобы поле updatedAt было обновлено
+        await Collections.update(
+            { updatedAt: new Date() },
+            { where: { collection_id: +collectionId } }
+        );
+
         res.status(201).json(newRecord);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Ошибка при добавлении рецепта в коллекцию' });
     }
 });
+
 
 
 
@@ -115,5 +123,60 @@ router.post('/',authenticateJWT, async (req:AuthenticatedRequest, res) => {
         res.status(500).json({ message: 'Ошибка при создании коллекции' });
     }
 });
+
+
+//Получить все коллекции пользователя
+router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            res.status(401).json({ message: 'Unauthorized' });
+            return
+        }
+
+        const userCollectionLinks = await CollectionUsers.findAll({
+            where: { user_id: userId },
+        });
+        const collectionIds = userCollectionLinks.map((c) => c.collection_id);
+
+        const collections = await Collections.findAll({
+            where: { collection_id: collectionIds },
+        });
+
+        res.json(collections);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Ошибка при получении коллекций' });
+    }
+});
+
+
+// Эндпоинт для получения рецептов конкретной коллекции
+// URL: GET /api/collections/:collectionId/recipes
+router.get('/:collectionId/recipes', authenticateJWT, async (req: AuthenticatedRequest, res) => {
+    try {
+        const { collectionId } = req.params;
+        // Находим коллекцию и включаем связанные рецепты.
+        const collection = await Collections.findByPk(collectionId, {
+            include: [
+                {
+                    model: Recipe,
+                    as: 'recipes',
+                },
+            ],
+        });
+        if (!collection) {
+            res.status(404).json({ message: 'Коллекция не найдена' });
+            return
+        }
+        const { recipes } = collection as Collections & { recipes: any[] };
+        res.json(recipes);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Ошибка при получении рецептов коллекции' });
+    }
+});
+
 
 export default router;

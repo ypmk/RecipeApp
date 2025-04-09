@@ -14,9 +14,6 @@ class CollectionsRecipes extends Model<
     declare id_collection_recipe: CreationOptional<number>;
     declare collection_id: number;
     declare recipe_id: number;
-
-    declare createdAt: CreationOptional<Date>;
-    declare updatedAt: CreationOptional<Date>;
 }
 
 CollectionsRecipes.init(
@@ -34,12 +31,11 @@ CollectionsRecipes.init(
             type: DataTypes.INTEGER,
             allowNull: false,
         },
-        createdAt: DataTypes.DATE,
-        updatedAt: DataTypes.DATE,
     },
     {
         sequelize,
         tableName: 'collections_recipes',
+        timestamps: true,
     }
 );
 

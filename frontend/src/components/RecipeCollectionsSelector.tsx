@@ -149,7 +149,7 @@ const RecipeCollectionsSelector: React.FC<Props> = ({ recipeId, onClose }) => {
                         onClick={handleCreateCollection}
                         className="mt-2 w-full bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded transition"
                     >
-                        Создать коллекцию и добавить рецепт
+                        Создать коллекцию
                     </button>
                 </div>
             </div>

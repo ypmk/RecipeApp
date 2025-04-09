@@ -203,7 +203,7 @@ function CreateRecipe() {
             setMainImage(null);
             setAdditionalImages([]);
             setIsSubmitting(false);
-            navigate('/');
+            navigate('/main');
         } catch (err) {
             console.error(err);
             setError('Ошибка при создании рецепта');
@@ -274,13 +274,11 @@ function CreateRecipe() {
                                 type="button"
                                 onClick={() => setMainImage(null)}
                                 className="
-                                  absolute top-0 right-0
-                                  bg-red-500 text-white
-                                  p-1 rounded-full
-                                  hover:bg-red-600
-                                  transition-colors
-                                "
-                                title="Удалить изображение"
+                                                absolute top-1 right-1
+                                                bg-red-600 text-white
+                                                w-6 h-6 flex items-center justify-center
+                                                rounded-full shadow hover:bg-red-700 transition-colors
+                                              "title="Удалить изображение"
                             >
                                 &times;
                             </button>

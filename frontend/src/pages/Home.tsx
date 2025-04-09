@@ -6,7 +6,6 @@ import AddButton from "../components/AddButton.tsx";
 import RecipesList from "../components/RecipesList.tsx";
 
 
-
 const Home: React.FC = () => {
     return (
         <div className="min-h-screen flex flex-col bg-[#F8F9FB] font-['Plus Jakarta Sans','Noto Sans',sans-serif]">
@@ -19,6 +18,7 @@ const Home: React.FC = () => {
                     <div className="flex justify-end px-5 pb-5">
                         <AddButton />
                     </div>
+
                 </div>
             </main>
         </div>

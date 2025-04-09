@@ -29,12 +29,17 @@ Collections.init(
             type: DataTypes.STRING(256),
             allowNull: false,
         },
-        createdAt: DataTypes.DATE,
-        updatedAt: DataTypes.DATE,
+        createdAt: {
+            type: DataTypes.DATE,
+        },
+        updatedAt: {
+            type: DataTypes.DATE,
+        },
     },
     {
         sequelize,
         tableName: 'collections',
+        timestamps: true,
     }
 );
 

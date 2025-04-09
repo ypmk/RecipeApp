@@ -1,6 +1,6 @@
 // components/FilterBar.tsx
 
-const filters = ["Фильтры", "Сортировка", "По категориям"];
+const filters = ["Фильтры", "Сортировка", "По коллекциям"];
 
 const FilterBar = () => {
     return (
