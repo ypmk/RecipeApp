@@ -179,4 +179,34 @@ router.get('/:collectionId/recipes', authenticateJWT, async (req: AuthenticatedR
 });
 
 
+// Удаление коллекции
+router.delete('/:collectionId', authenticateJWT, async (req: AuthenticatedRequest, res) => {
+    try {
+        const userId = req.user?.id;
+        const { collectionId } = req.params;
+
+        // Проверка, что коллекция принадлежит пользователю
+        const link = await CollectionUsers.findOne({
+            where: { user_id: userId, collection_id: collectionId },
+        });
+
+        if (!link) {
+            res.status(403).json({ message: 'Нет доступа к удалению этой коллекции' });
+            return
+        }
+
+
+        await CollectionsRecipes.destroy({ where: { collection_id: collectionId } });
+        await CollectionUsers.destroy({ where: { collection_id: collectionId } });
+
+        await Collections.destroy({ where: { collection_id: collectionId } });
+
+        res.json({ message: 'Коллекция удалена' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Ошибка при удалении коллекции' });
+    }
+});
+
+
 export default router;

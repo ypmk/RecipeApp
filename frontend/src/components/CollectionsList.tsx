@@ -2,6 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { FaTrash } from 'react-icons/fa';
+import ConfirmModal from './ConfirmModal';
+
 
 // Интерфейс для коллекции. Предполагается наличие поля updatedAt и, возможно, lastRecipeImage.
 interface Collection {
@@ -19,6 +22,9 @@ const CollectionsList: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [sortOption, setSortOption] = useState<SortOption>('updated');
     const [searchQuery, setSearchQuery] = useState<string>('');
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [collectionToDelete, setCollectionToDelete] = useState<Collection | null>(null);
+
 
     // Функция загрузки коллекций пользователя
     const fetchCollections = async () => {
@@ -70,6 +76,28 @@ const CollectionsList: React.FC = () => {
 
     const sortedAndFilteredCollections = sortCollections(filteredCollections);
 
+    const requestDeleteCollection = (collection: Collection) => {
+        setCollectionToDelete(collection);
+        setConfirmOpen(true);
+    };
+
+    const confirmDeleteCollection = async () => {
+        if (!collectionToDelete) return;
+        try {
+            await axios.delete(`/api/collections/${collectionToDelete.collection_id}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+            });
+            setCollections(prev => prev.filter(c => c.collection_id !== collectionToDelete.collection_id));
+            setConfirmOpen(false);
+            setCollectionToDelete(null);
+        } catch (error) {
+            console.error('Ошибка удаления коллекции:', error);
+            alert('Не удалось удалить коллекцию');
+        }
+    };
+
+
+
     if (loading) {
         return <div className="px-4 py-6 max-w-7xl mx-auto">Загрузка...</div>;
     }
@@ -107,12 +135,8 @@ const CollectionsList: React.FC = () => {
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                     {sortedAndFilteredCollections.map((collection) => (
-                        <div
-                            key={collection.collection_id}
-                            className="bg-white rounded-md shadow p-3 flex flex-col hover:shadow-md transition"
-                        >
-                            {/* Отображение изображения последнего добавленного рецепта или заглушка */}
-                            <Link to={`/collections/${collection.collection_id}`} key={collection.collection_id}>
+                        <div key={collection.collection_id} className="relative group">
+                            <Link to={`/collections/${collection.collection_id}`} className="block rounded-md shadow-sm overflow-hidden">
                                 {collection.lastRecipeImage ? (
                                     <img
                                         src={
@@ -121,22 +145,43 @@ const CollectionsList: React.FC = () => {
                                                 : `/${collection.lastRecipeImage}`
                                         }
                                         alt={collection.name}
-                                        className="w-full h-32 object-cover rounded mb-2"
+                                        className="w-full h-32 object-cover rounded"
                                     />
                                 ) : (
-                                    <div className="w-full h-32 bg-gray-200 rounded mb-2 flex items-center justify-center">
+                                    <div className="w-full h-32 bg-gray-200 rounded flex items-center justify-center">
                                         <span className="text-gray-500 text-sm">Нет изображения</span>
                                     </div>
                                 )}
-
-                                <div className="text-center mt-auto">
-                                    <h2 className="text-lg font-semibold">{collection.name}</h2>
+                                <div className="text-center mt-2 px-2">
+                                    <h2 className="text-sm font-semibold truncate">{collection.name}</h2>
                                 </div>
                             </Link>
+
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    requestDeleteCollection(collection);
+                                }}
+                                className="absolute top-2 right-2 bg-white/80 text-gray-600 rounded-full w-8 h-8 flex items-center justify-center hover:bg-white shadow"
+                                title="Удалить коллекцию"
+                            >
+                                <FaTrash size={14} />
+                            </button>
                         </div>
                     ))}
                 </div>
             )}
+            <ConfirmModal
+                isOpen={confirmOpen}
+                title="Удаление коллекции"
+                message={`Вы действительно хотите удалить коллекцию «${collectionToDelete?.name}»?`}
+                onCancel={() => {
+                    setConfirmOpen(false);
+                    setCollectionToDelete(null);
+                }}
+                onConfirm={confirmDeleteCollection}
+            />
         </div>
     );
 };
