@@ -7,7 +7,7 @@ interface SearchBarProps {
 
 const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
     return (
-        <div className="px-4 py-3">
+        <div className="w-full py-3 pr-4">
             <label className="flex flex-col h-12 w-full">
                 <div className="flex items-center bg-[#E4E9F1] rounded-xl h-full">
                     <div className="pl-4 text-[#3F5374]">
