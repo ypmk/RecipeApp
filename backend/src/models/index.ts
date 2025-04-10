@@ -139,6 +139,12 @@ CookingTime.hasMany(Recipe, {
 
 
 
+CollectionsRecipes.belongsTo(Recipe, {
+    foreignKey: 'recipe_id',
+    as: 'recipe',
+});
+
+
 /**
  * Экспортируем модели, чтобы использовать их в других частях приложения.
  * (Например, в контроллерах, сервисах и т.д.)
