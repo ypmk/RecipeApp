@@ -15,6 +15,7 @@ class Recipe extends Model<InferAttributes<Recipe>, InferCreationAttributes<Reci
     declare time_cooking: number | null;
     declare number_of_servings: number | null;
     declare main_image:  string | null;
+    declare cooking_time_id: number | null;
 
     declare createdAt: CreationOptional<Date>;
     declare updatedAt: CreationOptional<Date>;
@@ -46,6 +47,10 @@ Recipe.init(
         },
         main_image: {
             type: DataTypes.STRING,
+            allowNull: true,
+        },
+        cooking_time_id: {
+            type: DataTypes.INTEGER,
             allowNull: true,
         },
 

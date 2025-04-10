@@ -14,6 +14,7 @@ import CollectionUsers from "./CollectionUsers";
 import Collections from "./Collections";
 import CollectionsRecipes from "./CollectionsRecipes";
 import RecipeImage from "./RecipeImage";
+import CookingTime from "./CookingTime";
 
 
 /** ---------- Связи между User и Recipe через RecipeUser ---------- */
@@ -125,6 +126,19 @@ Recipe.belongsToMany(Collections, {
     as: 'collections'
 });
 
+
+/** ---------- Связь Recipe -> CookingTime---------- */
+Recipe.belongsTo(CookingTime, {
+    foreignKey: 'cooking_time_id',
+    as: 'cookingTime'
+});
+CookingTime.hasMany(Recipe, {
+    foreignKey: 'cooking_time_id',
+    as: 'recipes'
+});
+
+
+
 /**
  * Экспортируем модели, чтобы использовать их в других частях приложения.
  * (Например, в контроллерах, сервисах и т.д.)
@@ -145,4 +159,5 @@ export {
     Collections,
     CollectionUsers,
     CollectionsRecipes,
+    CookingTime,
 };

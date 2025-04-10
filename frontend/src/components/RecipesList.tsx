@@ -4,7 +4,6 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { AuthContext } from "../context/AuthContext";
 import ConfirmModal from './ConfirmModal';
-import { FilterParams } from './FilterModal';
 
 interface Collection {
     collection_id: number;
@@ -16,18 +15,24 @@ interface Recipe {
     name: string;
     main_image: string;
     mealType?: string;
-    time_cooking?: number; // в минутах
     collections?: Collection[];
+    cookingTime?: {
+        id: number;
+        label: string;
+    };
 }
 
 interface RecipesListProps {
     searchQuery: string;
-    filters: FilterParams;
+    filters: {
+        timeCooking: string;
+        selectedCollections: number[];
+    };
 }
 
 const RecipesList: React.FC<RecipesListProps> = ({ searchQuery, filters }) => {
     const [recipes, setRecipes] = useState<Recipe[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [, setLoading] = useState(true);
     const { user } = useContext(AuthContext);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [recipeToDelete, setRecipeToDelete] = useState<Recipe | null>(null);
@@ -51,6 +56,31 @@ const RecipesList: React.FC<RecipesListProps> = ({ searchQuery, filters }) => {
         }
     };
 
+    const filteredRecipes = recipes.filter(recipe => {
+        // Фильтр по названию
+        const matchesSearch = recipe.name.toLowerCase().includes(searchQuery.toLowerCase());
+
+        // Фильтр по времени приготовления
+        let matchesCookingTime = true;
+        if (filters.timeCooking && filters.timeCooking !== "не важно") {
+            const selectedCookingTimeId = Number(filters.timeCooking);
+            // Если ассоциация не загружена, recipe.cookingTime может быть undefined
+            matchesCookingTime = recipe.cookingTime ? recipe.cookingTime.id === selectedCookingTimeId : false;
+        }
+
+        // Фильтр по коллекциям
+        let matchesCollections = true;
+        if (filters.selectedCollections.length > 0) {
+            matchesCollections = Array.isArray(recipe.collections) && recipe.collections.some((col) => {
+                const colId = col.collection_id || (col as any).id;
+                return filters.selectedCollections.includes(Number(colId));
+            });
+        }
+
+        return matchesSearch && matchesCookingTime && matchesCollections;
+    });
+
+
     useEffect(() => {
         if (!user) {
             setRecipes([]);
@@ -68,39 +98,7 @@ const RecipesList: React.FC<RecipesListProps> = ({ searchQuery, filters }) => {
             });
     }, [user]);
 
-    // Простейшая функция для преобразования времени из текста в число (или Infinity)
-    const parseTimeLimit = (time: string): number => {
-        switch(time) {
-            case "5 минут": return 5;
-            case "10 минут": return 10;
-            case "15 минут": return 15;
-            case "30 минут": return 30;
-            case "45 минут": return 45;
-            case "1 час": return 60;
-            case "более часа": return Infinity;
-            default: return Infinity;
-        }
-    };
 
-    const filteredRecipes = recipes.filter(recipe => {
-        // Фильтр поиска по названию
-        const matchesSearch = recipe.name.toLowerCase().includes(searchQuery.toLowerCase());
-        // Фильтр по времени приготовления
-        let matchesTimeCooking = true;
-        if (filters.timeCooking && filters.timeCooking !== "не важно" && recipe.time_cooking !== undefined) {
-            const limit = parseTimeLimit(filters.timeCooking);
-            matchesTimeCooking = recipe.time_cooking <= limit;
-        }
-        // Фильтр по коллекциям: если выбраны какие-либо коллекции, проверяем, принадлежит ли рецепт хотя бы одной из них
-        let matchesCollections = true;
-        if (filters.selectedCollections.length > 0) {
-            matchesCollections = recipe.collections !== undefined &&
-                filters.selectedCollections.some(selId =>
-                    recipe.collections!.some(col => col.collection_id === selId)
-                );
-        }
-        return matchesSearch && matchesTimeCooking && matchesCollections;
-    });
 
     return (
         <div className="p-4">

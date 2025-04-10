@@ -14,7 +14,8 @@ import recipeIngredientsRoutes from './routes/recipeIngredients';
 import ingredientUnitsRoutes from "./routes/ingredientUnitsRoutes";
 import path from "path";
 import collectionRoutes from "./routes/collectionRoutes";
-
+import CookingTime from "./models/CookingTime";
+import cookingTimeRoutes from "./routes/cookingTimeRoutes";
 
 dotenv.config();
 
@@ -45,6 +46,9 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 // Маршруты коллекций
 app.use('/api/collections', collectionRoutes);
 
+// Маршруты времени приготовления
+app.use('/api/cooking-times', cookingTimeRoutes);  // <-- подключение нового маршрута
+
 
 const seedIngredientUnits = async () => {
     const existing = await IngredientUnits.count();
@@ -58,6 +62,30 @@ const seedIngredientUnits = async () => {
 };
 
 
+const seedCookingTimes = async () => {
+    try {
+        const count = await CookingTime.count();
+        if (count === 0) {
+            const times = [
+                { label: "5 минут" },
+                { label: "10 минут" },
+                { label: "15 минут" },
+                { label: "30 минут" },
+                { label: "45 минут" },
+                { label: "1 час" },
+                { label: "более часа" },
+            ];
+            await CookingTime.bulkCreate(times);
+            console.log("Таблица 'Время приготовления' успешно заполнена!");
+        } else {
+            console.log("В таблице 'Время приготовления' уже есть записи.");
+        }
+    } catch (err) {
+        console.error("Ошибка при заполнении таблицы 'Время приготовления':", err);
+    }
+};
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Сервер запущен на порту ${PORT}`);
@@ -66,6 +94,7 @@ app.listen(PORT, () => {
         .then(async () => {
             console.log('Все модели синхронизированы успешно');
             await seedIngredientUnits();
+            await seedCookingTimes();
         })
         .catch(err => {
             console.error('Ошибка синхронизации базы данных:', err);

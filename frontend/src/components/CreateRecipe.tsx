@@ -1,3 +1,4 @@
+// CreateRecipe.tsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Trash2 } from 'lucide-react';
@@ -7,6 +8,7 @@ interface IngredientInput {
     name: string;
     quantity: number;
     unit_id: number;
+    [key: string]: string | number;
 }
 
 interface UnitOption {
@@ -20,14 +22,20 @@ interface IngredientSuggestion {
     unit_id: number;
 }
 
+interface CookingTimeOption {
+    id: number;
+    label: string;
+}
+
 function CreateRecipe() {
     const [name, setName] = useState('');
     const [instructions, setInstructions] = useState('');
-    const [timeCooking, setTimeCooking] = useState('');
+
+    // Новое состояние для выбора времени приготовления (идентификатор выбранного варианта)
+    const [cookingTimeId, setCookingTimeId] = useState('');
+
     const [numberOfServings, setNumberOfServings] = useState('');
-    const [ingredients, setIngredients] = useState<IngredientInput[]>([
-        { name: '', quantity: 1, unit_id: 1 },
-    ]);
+    const [ingredients, setIngredients] = useState<IngredientInput[]>([{ name: '', quantity: 1, unit_id: 1 }]);
     const [unitOptions, setUnitOptions] = useState<UnitOption[]>([]);
     const [ingredientErrors, setIngredientErrors] = useState<string[]>([]);
     const [error, setError] = useState<string | null>(null);
@@ -36,17 +44,29 @@ function CreateRecipe() {
     const [suggestions, setSuggestions] = useState<IngredientSuggestion[][]>([[]]);
     const [showSuggestions, setShowSuggestions] = useState<boolean[]>([false]);
     const [mainImage, setMainImage] = useState<File | null>(null);
-
-    // Состояние для дополнительных изображений (храним файлы в виде массива)
     const [additionalImages, setAdditionalImages] = useState<File[]>([]);
+    const [cookingTimeOptions, setCookingTimeOptions] = useState<CookingTimeOption[]>([]);
 
     const navigate = useNavigate();
 
     useEffect(() => {
+        // Загружаем единицы измерения для ингредиентов
         axios
             .get<UnitOption[]>('/api/ingredient-units')
             .then((res) => setUnitOptions(res.data))
             .catch((err) => console.error('Ошибка загрузки единиц:', err));
+
+        // Загружаем варианты времени приготовления из таблицы CookingTime
+        axios
+            .get<CookingTimeOption[]>('/api/cooking-times')
+            .then((res) => {
+                setCookingTimeOptions(res.data);
+                // Можно задать значение по умолчанию, например первый вариант:
+                if (res.data.length > 0) {
+                    setCookingTimeId(String(res.data[0].id));
+                }
+            })
+            .catch((err) => console.error('Ошибка загрузки вариантов времени:', err));
     }, []);
 
     const handleAddIngredient = () => {
@@ -113,14 +133,12 @@ function CreateRecipe() {
         setShowSuggestions(updatedShow);
     };
 
-    // Обработчик выбора главного изображения
     const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             setMainImage(e.target.files[0]);
         }
     };
 
-    // Обработчик выбора дополнительных изображений
     const handleAdditionalImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const newFiles = Array.from(e.target.files);
@@ -129,9 +147,6 @@ function CreateRecipe() {
         }
     };
 
-
-
-    // Обработчик отправки формы создания рецепта
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isSubmitting) return;
@@ -153,21 +168,18 @@ function CreateRecipe() {
             const token = localStorage.getItem('token');
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-            // Формируем FormData для отправки рецепта с главным изображением
             const formData = new FormData();
             formData.append('name', name);
             formData.append('instructions', instructions);
-            if (timeCooking) formData.append('time_cooking', timeCooking);
+            if (cookingTimeId) formData.append('cooking_time_id', cookingTimeId);
             if (numberOfServings) formData.append('number_of_servings', numberOfServings);
             if (mainImage) {
                 formData.append('main_image', mainImage);
             }
 
-            // Создаём рецепт
             const recipeRes = await axios.post('/api/recipes', formData, { headers });
             const recipeId = recipeRes.data.recipe_id;
 
-            // Отправляем ингредиенты, связанные с рецептом
             for (let i = 0; i < ingredients.length; i++) {
                 const { name, quantity, unit_id } = ingredients[i];
                 if (!name.trim()) continue;
@@ -178,12 +190,10 @@ function CreateRecipe() {
                         { headers }
                     );
                 } catch (err: any) {
-                    // Обработка ошибок для ингредиентов (можно собрать ошибки, если требуется)
                     console.error(`Ошибка с ингредиентом "${name}":`, err);
                 }
             }
 
-            // Если выбраны дополнительные изображения, отправляем их на сервер сразу после создания рецепта
             if (additionalImages.length > 0) {
                 const imagesFormData = new FormData();
                 additionalImages.forEach(file => {
@@ -195,11 +205,9 @@ function CreateRecipe() {
             setSuccess('Рецепт успешно создан!');
             setName('');
             setInstructions('');
-            setTimeCooking('');
+            setCookingTimeId('');
             setNumberOfServings('');
             setIngredients([{ name: '', quantity: 1, unit_id: 1 }]);
-            setSuggestions([[]]);
-            setShowSuggestions([false]);
             setMainImage(null);
             setAdditionalImages([]);
             setIsSubmitting(false);
@@ -216,98 +224,65 @@ function CreateRecipe() {
             <h2 className="text-2xl font-extrabold text-center mb-6">Создание рецепта</h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-                <input
-                    type="text"
-                    placeholder="Название рецепта"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                />
 
-                <textarea
-                    placeholder="Инструкции"
-                    rows={3}
-                    value={instructions}
-                    onChange={(e) => setInstructions(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                />
-
-                {/* Блок загрузки главного изображения */}
-                <div className="mb-4">
-                    <label className="block font-semibold text-gray-700 mb-2">Главное изображение</label>
-                    {/* Скрытый input */}
+                {/* Название рецепта */}
+                <div>
+                    <label className="block font-semibold text-gray-700 mb-1">Название рецепта</label>
                     <input
-                        id="mainImageInput"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleMainImageChange}
-                        className="hidden"
+                        type="text"
+                        placeholder="Название рецепта"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                     />
-                    {/* Если главное изображение не выбрано – показываем пустое поле с плюсом */}
-                    {!mainImage ? (
-                        <label
-                            htmlFor="mainImageInput"
-                            className="
-                                cursor-pointer
-                                inline-flex
-                                items-center
-                                justify-center
-                                w-36
-                                h-36
-                                border-2
-                                border-dashed
-                                border-gray-300
-                                rounded-md
-                              "
-                        >
-                            <span className="text-4xl text-gray-400">+</span>
-                        </label>
-                    ) : (
-                        <div className="mt-2 relative inline-block">
-                            <img
-                                src={URL.createObjectURL(mainImage)}
-                                alt="Миниатюра главного изображения"
-                                className="w-24 h-24 object-cover rounded"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setMainImage(null)}
-                                className="
-                                                absolute top-1 right-1
-                                                bg-red-600 text-white
-                                                w-6 h-6 flex items-center justify-center
-                                                rounded-full shadow hover:bg-red-700 transition-colors
-                                              "title="Удалить изображение"
-                            >
-                                &times;
-                            </button>
-                        </div>
-                    )}
                 </div>
 
+                {/* Инструкции */}
+                <div>
+                    <label className="block font-semibold text-gray-700 mb-1">Способ приготовления</label>
+                    <textarea
+                        placeholder="Инструкции"
+                        rows={3}
+                        value={instructions}
+                        onChange={(e) => setInstructions(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    />
+                </div>
 
-
-
+                {/* Время приготовления*/}
                 <div className="flex gap-4">
-                    <input
-                        type="number"
-                        placeholder="Время (мин)"
-                        value={timeCooking}
-                        onChange={(e) => setTimeCooking(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    />
-                    <input
-                        type="number"
-                        placeholder="Порции"
-                        value={numberOfServings}
-                        onChange={(e) => setNumberOfServings(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    />
+                    <div>
+                        <label className="block font-semibold text-gray-700 mb-1">Время приготовления</label>
+                        <select
+                            value={cookingTimeId}
+                            onChange={(e) => setCookingTimeId(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            required
+                        >
+                            <option value="">Выберите время приготовления</option>
+                            {cookingTimeOptions.map((option) => (
+                                <option key={option.id} value={option.id}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    {/* Количество порций*/}
+                    <div>
+                        <label className="block font-semibold text-gray-700 mb-1">Количество порций</label>
+                        <input
+                            type="number"
+                            placeholder="Порции"
+                            value={numberOfServings}
+                            onChange={(e) => setNumberOfServings(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                        />
+                    </div>
                 </div>
 
 
-
+                {/* Ингредиенты */}
                 <div>
                     <label className="block font-semibold text-gray-700 mb-2">Ингредиенты</label>
                     {ingredients.map((ingredient, index) => (
@@ -387,37 +362,67 @@ function CreateRecipe() {
                     <button
                         type="button"
                         onClick={handleAddIngredient}
-                        className="mt-2 px-4 py-2 text-sm bg-orange-100 hover:bg-orange-200 rounded-lg"
+                        className="
+                              px-4 py-2 bg-white text-orange-500 border border-orange-500
+                              rounded-lg font-semibold hover:bg-orange-50 transition
+                              flex items-center gap-2
+                            "
                     >
-                        ➕ Добавить ингредиент
+                        <span className="text-lg ">+</span> <span>Добавить ингредиент</span>
                     </button>
                 </div>
 
 
+                {/* Главное изображение */}
+                <div className="mb-4">
+                    <label className="block font-semibold text-gray-700 mb-2">Главное изображение</label>
+                    <input
+                        id="mainImageInput"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleMainImageChange}
+                        className="hidden"
+                    />
+                    {!mainImage ? (
+                        <label
+                            htmlFor="mainImageInput"
+                            className="cursor-pointer w-24 h-24 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center"
+                        >
+                            <span className="text-4xl text-gray-400">+</span>
+                        </label>
+                    ) : (
+                        <div className="mt-2 relative inline-block">
+                            <img
+                                src={URL.createObjectURL(mainImage)}
+                                alt="Миниатюра главного изображения"
+                                className="w-24 h-24 object-cover rounded shadow-sm border border-gray-200"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setMainImage(null)}
+                                className="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 flex items-center justify-center rounded-full shadow hover:bg-red-700 transition-colors"
+                                title="Удалить изображение"
+                            >
+                                &times;
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Дополнительные изображения */}
                 <div className="mb-4">
                     <label className="block font-semibold text-gray-700 mb-2">
                         Дополнительные изображения
                     </label>
-                    <div className="flex items-center gap-4">
-                        {/* Стилизованный label с пустым полем и кнопкой "плюс" */}
+                    <div className="flex flex-wrap gap-2">
+                        {/* Кнопка "+" */}
                         <label
                             htmlFor="additionalImagesInput"
-                            className="
-                                cursor-pointer
-                                inline-flex
-                                items-center
-                                justify-center
-                                w-36
-                                h-36
-                                border-2
-                                border-dashed
-                                border-gray-300
-                                rounded-md
-                              "
+                            className="cursor-pointer w-24 h-24 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center"
                         >
                             <span className="text-4xl text-gray-400">+</span>
                         </label>
-                        {/* Скрытый input */}
+
                         <input
                             id="additionalImagesInput"
                             type="file"
@@ -426,52 +431,40 @@ function CreateRecipe() {
                             onChange={handleAdditionalImagesChange}
                             className="hidden"
                         />
+
+                        {/* Все изображения в одном списке */}
+                        {additionalImages.map((file, index) => {
+                            const preview = URL.createObjectURL(file);
+                            return (
+                                <div key={index} className="relative w-24 h-24">
+                                    <img
+                                        src={preview}
+                                        alt={`Доп. изображение ${index + 1}`}
+                                        className="w-full h-full object-cover rounded-md border border-gray-200"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setAdditionalImages(prev => prev.filter((_, i) => i !== index))
+                                        }
+                                        className="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 flex items-center justify-center rounded-full shadow hover:bg-red-700 transition-colors"
+                                        title="Удалить изображение"
+                                    >
+                                        &times;
+                                    </button>
+                                </div>
+                            );
+                        })}
                     </div>
-                    {/* Превью выбранных дополнительных изображений */}
-                    {additionalImages.length > 0 && (
-                        <div className="mt-4 flex flex-wrap gap-4">
-                            {additionalImages.map((file, index) => {
-                                const preview = URL.createObjectURL(file);
-                                return (
-                                    <div key={index} className="relative w-24 h-24">
-                                        <img
-                                            src={preview}
-                                            alt={`Доп. изображение ${index + 1}`}
-                                            className="w-full h-full object-cover rounded-md border border-gray-200"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setAdditionalImages(prev => prev.filter((_, i) => i !== index))
-                                            }
-                                            className="
-                                                absolute top-1 right-1
-                                                bg-red-600 text-white
-                                                w-6 h-6 flex items-center justify-center
-                                                rounded-full shadow hover:bg-red-700 transition-colors
-                                              "
-                                            title="Удалить изображение"
-                                        >
-                                            &times;
-                                        </button>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
+
                 </div>
-
-
-
 
 
 
                 <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`w-full text-white font-bold py-2 rounded-lg transition duration-200 ${
-                        isSubmitting ? 'bg-orange-300 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'
-                    }`}
+                    className={`w-full text-white font-bold py-2 rounded-lg transition duration-200 ${isSubmitting ? 'bg-orange-300 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'}`}
                 >
                     {isSubmitting ? 'Создание...' : 'Создать рецепт'}
                 </button>

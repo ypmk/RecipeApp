@@ -3,7 +3,7 @@ import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth';
 import Recipe from '../models/Recipe';
 import RecipeUser from '../models/RecipeUser';
 import User from '../models/User';
-import {Collections, Ingredient, IngredientUnits, RecipesIngredients} from "../models";
+import {Collections, CookingTime, Ingredient, IngredientUnits, RecipesIngredients} from "../models";
 import {upload} from "../middleware/upload";
 import RecipeImage from "../models/RecipeImage";
 import {Op} from "sequelize";
@@ -22,18 +22,17 @@ router.post('/', authenticateJWT, upload.single('main_image'), async (req: Authe
             return;
         }
 
-        const { name, instructions, time_cooking, number_of_servings } = req.body;
+        const { name, instructions, cooking_time_id, number_of_servings } = req.body;
 
         const imagePath = req.file
             ? req.file.path.replace(/\\/g, '/')
             : null;
 
-
         const newRecipe = await Recipe.create({
             name,
             instructions,
-            time_cooking,
-            number_of_servings,
+            cooking_time_id: cooking_time_id ? parseInt(cooking_time_id, 10) : null,
+            number_of_servings: number_of_servings ? parseInt(number_of_servings, 10) : null,
             main_image: imagePath,
         });
 
@@ -50,6 +49,8 @@ router.post('/', authenticateJWT, upload.single('main_image'), async (req: Authe
         return;
     }
 });
+
+
 
 
 /**
@@ -86,11 +87,13 @@ router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response
                     as: 'ingredients',
                     through: { attributes: ['quantity'] },
                 },
-                {
-                    model: Collections,
+                {   model: Collections,
                     as: 'collections',
-                    // Если не нужен список полей из связывающей таблицы, можно скрыть:
-                    through: { attributes: [] },
+                    through: { attributes: [] }
+                },
+                {
+                    model: CookingTime,
+                    as: 'cookingTime',
                 },
             ],
         });
@@ -124,7 +127,7 @@ router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Respo
 
         const recipeId = parseInt(req.params.id, 10);
 
-        // Ищем рецепт с указанным ID и включаем ингредиенты
+        // Добавляем include для CookingTime (alias: 'cookingTime')
         const recipe = await Recipe.findOne({
             where: { recipe_id: recipeId },
             include: [
@@ -148,6 +151,10 @@ router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Respo
                     model: RecipeImage,
                     as: 'images',
                 },
+                {
+                    model: CookingTime,
+                    as: 'cookingTime',
+                },
             ],
         });
 
@@ -157,13 +164,8 @@ router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Respo
         }
 
         const data = recipe.toJSON();
-        if (data.main_image) {
-            data.main_image = `/${data.main_image}`;
-        } else {
-            data.main_image = '/pasta.jpg'; // или null, если не хотите заглушку
-        }
+        data.main_image = data.main_image ? `/${data.main_image}` : '/pasta.jpg';
         res.json(data);
-        return;
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
@@ -189,7 +191,8 @@ router.put('/:id', authenticateJWT, upload.single('main_image'), async (req: Aut
         }
 
         const recipeId = parseInt(req.params.id, 10);
-        const { name, instructions, time_cooking, number_of_servings } = req.body;
+        // Добавляем извлечение нового поля cooking_time_id
+        const { name, instructions, time_cooking, number_of_servings, cooking_time_id } = req.body;
 
         // Проверяем, что рецепт принадлежит пользователю
         const recipe = await Recipe.findOne({
@@ -211,6 +214,10 @@ router.put('/:id', authenticateJWT, upload.single('main_image'), async (req: Aut
         if (instructions !== undefined) recipe.instructions = instructions;
         if (time_cooking !== undefined) recipe.time_cooking = time_cooking;
         if (number_of_servings !== undefined) recipe.number_of_servings = number_of_servings;
+        // Новый параметр: обновляем cooking_time_id, если он передан
+        if (cooking_time_id !== undefined) {
+            recipe.cooking_time_id = cooking_time_id ? parseInt(cooking_time_id, 10) : null;
+        }
 
         // Если передан новый файл главного изображения, обновляем его
         if (req.file) {

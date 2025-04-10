@@ -33,6 +33,10 @@ interface Recipe {
     ingredients?: Ingredient[];
     main_image: string;
     images?: RecipeImage[];
+    cookingTime?: {
+        id: number;
+        label: string;
+    };
 }
 
 const RecipeDetails: React.FC = () => {
@@ -152,37 +156,29 @@ const RecipeDetails: React.FC = () => {
                 </>
             )}
 
-            {recipe.time_cooking && (
+            {recipe.cookingTime && (
                 <>
                     <h2 className="text-[22px] font-bold text-[#1C160C] px-4 pb-3 pt-5">
                         Время приготовления:
                     </h2>
-                    <div className="p-4 grid grid-cols-[20%_1fr] gap-x-6">
-                        <div className="col-span-2 grid grid-cols-subgrid border-t border-t-[#E9DFCE] py-5">
-                            <p className="text-[#A18249] text-sm">{recipe.time_cooking}</p>
-                            <p className="text-[#1C160C] text-sm">минут</p>
-                        </div>
-                    </div>
+                    <p className="text-[#1C160C] text-base px-4 pt-1 pb-3">{recipe.cookingTime.label}</p>
                 </>
             )}
+
 
             {recipe.number_of_servings && (
                 <>
                     <h2 className="text-[22px] font-bold text-[#1C160C] px-4 pb-3 pt-5">
                         Количество порций:
                     </h2>
-                    <div className="p-4 grid grid-cols-[20%_1fr] gap-x-6">
-                        <div className="col-span-2 grid grid-cols-subgrid border-t border-t-[#E9DFCE] py-5">
-                            <p className="text-[#A18249] text-sm">{recipe.number_of_servings}</p>
-                        </div>
-                    </div>
+                    <p className="text-[#1C160C] text-base px-4 pt-1 pb-5">{recipe.number_of_servings}</p>
                 </>
             )}
 
             {recipe.images && recipe.images.length > 0 && (
                 <div className="mb-6">
-                    <h2 className="text-xl font-bold text-[#1C160C] mb-4">Дополнительные изображения</h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    <h2 className="text-[22px] font-bold text-[#1C160C] px-4 pb-3 pt-5">Дополнительные изображения</h2>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 px-4">
                         {recipe.images.map((img, index) => {
                             const imageUrl = img.image_path.startsWith('/') ? img.image_path : `/${img.image_path}`;
                             const sliderIndex = index + 1;

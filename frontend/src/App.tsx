@@ -37,7 +37,10 @@ const App: React.FC = () => {
                     <Route path="/planner" element={<PlanerPage />} />
                     <Route path="/lists" element={<Lists />} />
 
-                    <Route path="/recipes" element={<RecipesList />} />
+                    <Route path="/recipes" element={<RecipesList searchQuery={''} filters={{
+                        timeCooking: '',
+                        selectedCollections: []
+                    }} />} />
                     <Route path="/recipes/:id" element={<RecipeDetailsPage />} />
                     <Route path="/createRecipe" element={<CreateRecipePage />} />
                     <Route path="/recipes/:id/edit" element={<EditRecipePage />} />

@@ -1,7 +1,8 @@
+// EditRecipe.tsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom';
-import {Trash2} from 'lucide-react';
+import { useParams, useNavigate} from 'react-router-dom';
+import { Trash2 } from 'lucide-react';
 
 interface RecipeIngredientInfo {
     quantity: number;
@@ -12,6 +13,7 @@ interface IngredientInput {
     name: string;
     quantity: number;
     unit_id: number;
+    [key: string]: string | number | undefined;
 }
 
 interface RecipeImage {
@@ -29,20 +31,33 @@ interface Ingredient {
     };
 }
 
+interface CookingTime {
+    id: number;
+    label: string;
+}
+
 interface Recipe {
     recipe_id: number;
     name: string;
     instructions?: string;
+    // Старое поле можно оставить для совместимости, но используется cooking_time_id через ассоциацию
     time_cooking?: number;
     number_of_servings?: number;
     main_image: string;
     images?: RecipeImage[];
     ingredients?: Ingredient[];
+    // Ассоциация с CookingTime – должна приходить из GET /api/recipes/:id
+    cookingTime?: CookingTime;
 }
 
 interface UnitOption {
     ing_unit_id: number;
     name: string;
+}
+
+interface CookingTimeOption {
+    id: number;
+    label: string;
 }
 
 const EditRecipe: React.FC = () => {
@@ -53,7 +68,8 @@ const EditRecipe: React.FC = () => {
     const [recipe, setRecipe] = useState<Recipe | null>(null);
     const [name, setName] = useState('');
     const [instructions, setInstructions] = useState('');
-    const [timeCooking, setTimeCooking] = useState('');
+    // Состояние для выбора времени приготовления – сохраняем cooking_time_id как строку
+    const [cookingTimeId, setCookingTimeId] = useState('');
     const [numberOfServings, setNumberOfServings] = useState('');
     const [mainImage, setMainImage] = useState<File | null>(null);
     const [ingredients, setIngredients] = useState<IngredientInput[]>([]);
@@ -66,56 +82,74 @@ const EditRecipe: React.FC = () => {
     const [deletedAdditionalImageIds, setDeletedAdditionalImageIds] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSubmitting, ] = useState(false);
 
+    // Состояние для вариантов времени приготовления, загруженных из БД
+    const [cookingTimeOptions, setCookingTimeOptions] = useState<CookingTimeOption[]>([]);
+
+    // Эффект загрузки рецепта
     useEffect(() => {
-        axios.get<Recipe>(`/api/recipes/${recipeId}`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        }).then((res) => {
-            const data = res.data;
-            setRecipe(data);
-            setName(data.name);
-            setInstructions(data.instructions || '');
-            setTimeCooking(data.time_cooking?.toString() || '');
-            setNumberOfServings(data.number_of_servings?.toString() || '');
-            const ingr = data.ingredients?.map((ing) => ({
-                ingredient_id: ing.ingredient_id,
-                name: ing.name,
-                quantity: ing.RecipesIngredients.quantity,
-                unit_id: ing.IngredientUnit?.ing_unit_id || 1,
-            })) || [];
-            setIngredients(ingr);
-            setInitialIngredients(ingr);
-            setExistingAdditionalImages(data.images || []);
-            setLoading(false);
-        }).catch(() => {
-            setError('Ошибка загрузки рецепта');
-            setLoading(false);
-        });
-
-        axios.get<UnitOption[]>('/api/ingredient-units')
-            .then(res => setUnitOptions(res.data))
-            .catch(err => console.error('Ошибка загрузки единиц:', err));
+        const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
+        axios.get<Recipe>(`/api/recipes/${recipeId}`, { headers })
+            .then((res) => {
+                const data = res.data;
+                setRecipe(data);
+                setName(data.name);
+                setInstructions(data.instructions || '');
+                // Если ассоциация cookingTime присутствует – используем её id
+                if (data.cookingTime && data.cookingTime.id) {
+                    setCookingTimeId(String(data.cookingTime.id));
+                } else if (data.time_cooking) {
+                    setCookingTimeId(data.time_cooking.toString());
+                } else {
+                    setCookingTimeId('');
+                }
+                setNumberOfServings(data.number_of_servings?.toString() || '');
+                const ingr = data.ingredients?.map((ing) => ({
+                    ingredient_id: ing.ingredient_id,
+                    name: ing.name,
+                    quantity: ing.RecipesIngredients.quantity,
+                    unit_id: ing.IngredientUnit?.ing_unit_id || 1,
+                })) || [];
+                setIngredients(ingr);
+                setInitialIngredients(ingr);
+                setExistingAdditionalImages(data.images || []);
+                setLoading(false);
+            })
+            .catch(() => {
+                setError('Ошибка загрузки рецепта');
+                setLoading(false);
+            });
     }, [recipeId]);
 
-    const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files?.[0]) setMainImage(e.target.files[0]);
-    };
+    // Эффект загрузки единиц измерения
+    useEffect(() => {
+        axios.get<UnitOption[]>('/api/ingredient-units')
+            .then((res) => setUnitOptions(res.data))
+            .catch((err) => console.error('Ошибка загрузки единиц:', err));
+    }, []);
 
-    const handleNewAdditionalImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            setNewAdditionalImages(prev => [...prev, ...Array.from(e.target.files)]);
-            e.target.value = "";
+    // Эффект загрузки вариантов времени приготовления
+    useEffect(() => {
+        const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
+        axios.get<CookingTimeOption[]>('/api/cooking-times', { headers })
+            .then((res) => {
+                setCookingTimeOptions(res.data);
+                // Устанавливаем значение по умолчанию только если cookingTimeId ещё не задано
+                setCookingTimeId(prev => prev || (res.data.length > 0 ? String(res.data[0].id) : ''));
+            })
+            .catch((err) => console.error('Ошибка загрузки вариантов времени:', err));
+    }, [recipeId]); // можно зависеть только от recipeId, чтобы этот эффект не перезаписывал значение, когда рецепт уже загружен
+
+    const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files?.[0]) {
+            setMainImage(e.target.files[0]);
         }
     };
 
     const handleDeleteExistingImage = (imageId: number) => {
         setExistingAdditionalImages(prev => prev.filter(img => img.id !== imageId));
         setDeletedAdditionalImageIds(prev => [...prev, imageId]);
-    };
-
-    const handleDeleteNewImage = (index: number) => {
-        setNewAdditionalImages(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleAddIngredient = () => {
@@ -144,14 +178,12 @@ const EditRecipe: React.FC = () => {
             updated[index] = true;
             return updated;
         });
-
         if (!value.trim()) {
             const updated = [...suggestions];
             updated[index] = [];
             setSuggestions(updated);
             return;
         }
-
         try {
             const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
             const res = await axios.get(`/api/ingredients/search?q=${encodeURIComponent(value)}`, { headers });
@@ -173,6 +205,7 @@ const EditRecipe: React.FC = () => {
         setShowSuggestions(show);
     };
 
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
@@ -181,19 +214,20 @@ const EditRecipe: React.FC = () => {
             const formData = new FormData();
             formData.append('name', name);
             formData.append('instructions', instructions);
-            if (timeCooking) formData.append('time_cooking', timeCooking);
+            // Передаем новое значение времени приготовления через cooking_time_id
+            if (cookingTimeId) formData.append('cooking_time_id', cookingTimeId);
             if (numberOfServings) formData.append('number_of_servings', numberOfServings);
             if (mainImage) formData.append('main_image', mainImage);
+
             await axios.put(`/api/recipes/${recipeId}`, formData, { headers });
 
-            // Удаление ингредиентов
+            // Обновление ингредиентов
             const deletedIngredients = initialIngredients.filter(
                 init => init.ingredient_id && !ingredients.some(curr => curr.ingredient_id === init.ingredient_id)
             );
             for (const ing of deletedIngredients) {
                 await axios.delete(`/api/recipes/${recipeId}/ingredients/${ing.ingredient_id}`, { headers });
             }
-
             for (const ing of ingredients) {
                 if (!ing.name.trim()) continue;
                 if (ing.ingredient_id) {
@@ -203,10 +237,10 @@ const EditRecipe: React.FC = () => {
                 }
             }
 
+            // Удаление старых дополнительных изображений
             for (const imageId of deletedAdditionalImageIds) {
                 await axios.delete(`/api/recipes/${recipeId}/images/${imageId}`, { headers });
             }
-
             if (newAdditionalImages.length > 0) {
                 const imagesFormData = new FormData();
                 newAdditionalImages.forEach(file => imagesFormData.append('images', file));
@@ -253,29 +287,31 @@ const EditRecipe: React.FC = () => {
                     />
                 </div>
 
-                {/* Время и порции */}
+                {/* Время приготовления и порции */}
                 <div className="flex gap-4">
                     <div className="w-full">
                         <label className="block font-semibold text-gray-700 mb-1">Время приготовления</label>
-                        <div className="relative">
-                            <input
-                                type="number"
-                                value={timeCooking}
-                                onChange={(e) => setTimeCooking(e.target.value)}
-                                placeholder="0"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg pr-16"
-                            />
-                            <span className="absolute right-4 top-2.5 text-gray-500 text-sm">минут</span>
-                        </div>
+                        <select
+                            value={cookingTimeId}
+                            onChange={(e) => setCookingTimeId(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            required
+                        >
+                            <option value="">Выберите время приготовления</option>
+                            {cookingTimeOptions.map((option) => (
+                                <option key={option.id} value={option.id}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
                     </div>
-
                     <div className="w-full">
                         <label className="block font-semibold text-gray-700 mb-1">Количество порций</label>
                         <input
                             type="number"
                             value={numberOfServings}
                             onChange={(e) => setNumberOfServings(e.target.value)}
-                            placeholder="0"
+                            placeholder="Порции"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                         />
                     </div>
@@ -285,7 +321,6 @@ const EditRecipe: React.FC = () => {
                 <div className="mb-6">
                     <label className="block font-semibold text-gray-700 mb-2">Главное изображение</label>
                     <div className="flex gap-2 items-start flex-wrap">
-                        {/* Кнопка загрузки нового главного изображения */}
                         {!mainImage && (
                             <>
                                 <label
@@ -303,35 +338,10 @@ const EditRecipe: React.FC = () => {
                                 />
                             </>
                         )}
-
-                        {/* Новое главное изображение */}
-                        {mainImage && (
-                            <div className="relative w-24 h-24">
-                                <img
-                                    src={URL.createObjectURL(mainImage)}
-                                    alt="Новое главное изображение"
-                                    className="w-full h-full object-cover rounded-md border border-gray-200"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setMainImage(null)}
-                                    className="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 flex items-center justify-center rounded-full shadow hover:bg-red-700 transition-colors"
-                                    title="Удалить изображение"
-                                >
-                                    &times;
-                                </button>
-                            </div>
-                        )}
-
-                        {/* Текущее главное изображение, если новое не выбрано */}
                         {!mainImage && recipe?.main_image && (
                             <div className="relative w-24 h-24">
                                 <img
-                                    src={
-                                        recipe.main_image.startsWith('/')
-                                            ? recipe.main_image
-                                            : `/${recipe.main_image}`
-                                    }
+                                    src={recipe.main_image.startsWith('/') ? recipe.main_image : `/${recipe.main_image}`}
                                     alt="Главное изображение"
                                     className="w-full h-full object-cover rounded-md border border-gray-200"
                                 />
@@ -351,19 +361,30 @@ const EditRecipe: React.FC = () => {
                                 />
                             </div>
                         )}
+                        {mainImage && (
+                            <div className="relative w-24 h-24">
+                                <img
+                                    src={URL.createObjectURL(mainImage)}
+                                    alt="Новое главное изображение"
+                                    className="w-full h-full object-cover rounded-md border border-gray-200"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setMainImage(null)}
+                                    className="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 flex items-center justify-center rounded-full shadow hover:bg-red-700 transition-colors"
+                                    title="Удалить изображение"
+                                >
+                                    &times;
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
 
-
-
                 {/* Блок дополнительных изображений */}
                 <div className="mb-4">
-                    <label className="block font-semibold text-gray-700 mb-2">
-                        Дополнительные изображения
-                    </label>
-
+                    <label className="block font-semibold text-gray-700 mb-2">Дополнительные изображения</label>
                     <div className="flex gap-2 flex-wrap">
-                        {/* Кнопка + */}
                         <label
                             htmlFor="editAdditionalImagesInput"
                             className="cursor-pointer w-24 h-24 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center"
@@ -383,7 +404,6 @@ const EditRecipe: React.FC = () => {
                             className="hidden"
                         />
 
-                        {/*  Существующие изображения (до редактирования) */}
                         {existingAdditionalImages.map((img) => {
                             const url = img.image_path.startsWith('/') ? img.image_path : `/${img.image_path}`;
                             return (
@@ -405,7 +425,6 @@ const EditRecipe: React.FC = () => {
                             );
                         })}
 
-                        {/*  Новые изображения, выбранные во время редактирования */}
                         {newAdditionalImages.map((file, index) => {
                             const preview = URL.createObjectURL(file);
                             return (
@@ -417,9 +436,7 @@ const EditRecipe: React.FC = () => {
                                     />
                                     <button
                                         type="button"
-                                        onClick={() =>
-                                            setNewAdditionalImages((prev) => prev.filter((_, i) => i !== index))
-                                        }
+                                        onClick={() => setNewAdditionalImages(prev => prev.filter((_, i) => i !== index))}
                                         className="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 flex items-center justify-center rounded-full shadow hover:bg-red-700 transition-colors"
                                         title="Удалить изображение"
                                     >
@@ -430,8 +447,6 @@ const EditRecipe: React.FC = () => {
                         })}
                     </div>
                 </div>
-
-
 
                 {/* Блок ингредиентов */}
                 <div>
@@ -473,6 +488,7 @@ const EditRecipe: React.FC = () => {
                                         </ul>
                                     )}
                                 </div>
+
                                 <input
                                     type="number"
                                     min={0}
@@ -480,6 +496,7 @@ const EditRecipe: React.FC = () => {
                                     onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)}
                                     className="col-span-1 px-3 py-2 border border-gray-300 rounded-lg"
                                 />
+
                                 <select
                                     value={ingredient.unit_id}
                                     onChange={(e) => handleIngredientChange(index, 'unit_id', e.target.value)}
@@ -491,6 +508,7 @@ const EditRecipe: React.FC = () => {
                                         </option>
                                     ))}
                                 </select>
+
                                 <button
                                     type="button"
                                     onClick={() => handleRemoveIngredient(index)}
@@ -503,22 +521,15 @@ const EditRecipe: React.FC = () => {
                         </div>
                     ))}
 
-
                     <div className="flex mt-4">
                         <button
                             type="button"
                             onClick={handleAddIngredient}
-                            className="
-                              px-4 py-2 bg-white text-orange-500 border border-orange-500
-                              rounded-lg font-semibold hover:bg-orange-50 transition
-                              flex items-center gap-2
-                            "
+                            className="px-4 py-2 bg-white text-orange-500 border border-orange-500 rounded-lg font-semibold hover:bg-orange-50 transition flex items-center gap-2"
                         >
                             <span className="text-lg">+</span> <span>Добавить ингредиент</span>
                         </button>
                     </div>
-
-
                 </div>
 
                 <button

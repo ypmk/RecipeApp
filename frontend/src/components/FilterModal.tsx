@@ -3,13 +3,19 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 export interface FilterParams {
-    timeCooking: string; // один из вариантов: "5 минут", "10 минут", ... "не важно"
-    selectedCollections: number[]; // ID выбранных коллекций
+    // Сохраняем время приготовления как id (строка)
+    timeCooking: string;
+    selectedCollections: number[];
 }
 
 interface Collection {
     collection_id: number;
     name: string;
+}
+
+interface CookingTimeOption {
+    id: number;
+    label: string;
 }
 
 interface FilterModalProps {
@@ -19,30 +25,21 @@ interface FilterModalProps {
     initialFilters: FilterParams;
 }
 
-const timeOptions = [
-    "5 минут",
-    "10 минут",
-    "15 минут",
-    "30 минут",
-    "45 минут",
-    "1 час",
-    "более часа",
-    "не важно",
-];
-
 const FilterModal: React.FC<FilterModalProps> = ({
                                                      isOpen,
                                                      onClose,
                                                      onApply,
                                                      initialFilters,
                                                  }) => {
-    // Локальное состояние инициализируется из initialFilters — это позволяет сохранять выбранные значения
+    // Локальное состояние инициализируется из initialFilters
     const [timeCooking, setTimeCooking] = useState<string>(initialFilters.timeCooking);
+    const [cookingTimeOptions, setCookingTimeOptions] = useState<CookingTimeOption[]>([]);
     const [collections, setCollections] = useState<Collection[]>([]);
     const [selectedCollections, setSelectedCollections] = useState<number[]>(initialFilters.selectedCollections);
-    const [loading, setLoading] = useState<boolean>(false);
+    const [loadingCollections, setLoadingCollections] = useState<boolean>(false);
+    const [loadingCookingTimes, setLoadingCookingTimes] = useState<boolean>(false);
 
-    // При открытии модального окна установим локальное состояние из initialFilters
+    // При открытии модального окна установить локальные фильтры из initialFilters
     useEffect(() => {
         if (isOpen) {
             setTimeCooking(initialFilters.timeCooking);
@@ -53,18 +50,37 @@ const FilterModal: React.FC<FilterModalProps> = ({
     // Загружаем коллекции пользователя при открытии модального окна
     useEffect(() => {
         if (isOpen) {
-            setLoading(true);
+            setLoadingCollections(true);
             axios
                 .get('/api/collections', {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
                 })
                 .then((res) => {
                     setCollections(res.data);
-                    setLoading(false);
+                    setLoadingCollections(false);
                 })
                 .catch((err) => {
-                    console.error(err);
-                    setLoading(false);
+                    console.error('Ошибка загрузки коллекций:', err);
+                    setLoadingCollections(false);
+                });
+        }
+    }, [isOpen]);
+
+    // Загружаем варианты времени приготовления из БД
+    useEffect(() => {
+        if (isOpen) {
+            setLoadingCookingTimes(true);
+            axios
+                .get<CookingTimeOption[]>('/api/cooking-times', {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+                })
+                .then((res) => {
+                    setCookingTimeOptions(res.data);
+                    setLoadingCookingTimes(false);
+                })
+                .catch((err) => {
+                    console.error('Ошибка загрузки вариантов времени:', err);
+                    setLoadingCookingTimes(false);
                 });
         }
     }, [isOpen]);
@@ -76,7 +92,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
     };
 
     const resetFilters = () => {
-        setTimeCooking("");
+        setTimeCooking(""); // пустая строка означает отсутствие фильтра по времени
         setSelectedCollections([]);
     };
 
@@ -109,25 +125,29 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 {/* Фильтр по времени приготовления */}
                 <div>
                     <h3 className="text-lg font-semibold text-[#141C24] mb-2">Время приготовления</h3>
-                    <div className="flex flex-wrap gap-3">
-                        {timeOptions.map((option) => (
-                            <button
-                                key={option}
-                                onClick={() => setTimeCooking(option)}
-                                className={`px-4 py-2 rounded-full border ${
-                                    timeCooking === option ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-800"
-                                }`}
-                            >
-                                {option}
-                            </button>
-                        ))}
-                    </div>
+                    {loadingCookingTimes ? (
+                        <p>Загрузка вариантов времени...</p>
+                    ) : (
+                        <div className="flex flex-wrap gap-3">
+                            {cookingTimeOptions.map((option) => (
+                                <button
+                                    key={option.id}
+                                    onClick={() => setTimeCooking(String(option.id))}
+                                    className={`px-4 py-2 rounded-full border ${
+                                        timeCooking === String(option.id) ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-800"
+                                    }`}
+                                >
+                                    {option.label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Фильтр по коллекциям */}
                 <div className="mt-6">
                     <h3 className="text-lg font-semibold text-[#141C24] mb-2">Коллекция</h3>
-                    {loading ? (
+                    {loadingCollections ? (
                         <p>Загрузка коллекций...</p>
                     ) : (
                         <div className="flex flex-col gap-2">
