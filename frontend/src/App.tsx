@@ -14,6 +14,7 @@ import EditRecipePage from "./pages/EditRecipePage.tsx";
 import CreateRecipePage from "./pages/CreateRecipePage.tsx";
 import CollectionDetailsPage from "./pages/CollectionDetailsPage.tsx";
 import PlanerPage from "./pages/PlanerPage.tsx";
+import PlanerDetailPage from "./pages/PlanerDetailPage.tsx";
 
 const App: React.FC = () => {
     return (
@@ -33,8 +34,6 @@ const App: React.FC = () => {
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
 
-                    <Route path="/collections" element={<CollectionsListPage />} />
-                    <Route path="/planner" element={<PlanerPage />} />
                     <Route path="/lists" element={<Lists />} />
 
                     <Route path="/recipes" element={<RecipesList searchQuery={''} filters={{
@@ -47,6 +46,9 @@ const App: React.FC = () => {
 
                     <Route path="/collections" element={<CollectionsListPage />} />
                     <Route path="/collections/:collectionId" element={<CollectionDetailsPage />} />
+
+                    <Route path="/planer/:mealPlanId" element={<PlanerDetailPage />} />
+                    <Route path="/planer" element={<PlanerPage />} />
 
                 </Routes>
             </AuthProvider>

@@ -14,7 +14,7 @@ const Header = () => {
     const navItems = [
         { title: 'Главная', to: '/main' },
         { title: 'Коллекции', to: '/collections' },
-        { title: 'Планнер', to: '/planner' },
+        { title: 'Планнер', to: '/planer' },
         { title: 'Списки', to: '/lists' },
     ];
 

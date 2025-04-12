@@ -15,8 +15,8 @@ class MealPlanRecipes extends Model<
     declare meal_plan_id: number;
     declare recipe_id: number;
     declare day: number;
-    // По диаграмме "meal_type" — целое число (либо meal_type_id)
     declare meal_type: number;
+    declare quantity: number;
 
     declare createdAt: CreationOptional<Date>;
     declare updatedAt: CreationOptional<Date>;
@@ -44,6 +44,11 @@ MealPlanRecipes.init(
         meal_type: {
             type: DataTypes.INTEGER,
             allowNull: false,
+        },
+        quantity: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 1,
         },
         createdAt: DataTypes.DATE,
         updatedAt: DataTypes.DATE,

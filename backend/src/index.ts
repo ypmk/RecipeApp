@@ -16,6 +16,7 @@ import path from "path";
 import collectionRoutes from "./routes/collectionRoutes";
 import CookingTime from "./models/CookingTime";
 import cookingTimeRoutes from "./routes/cookingTimeRoutes";
+import mealPlanRoutes from "./routes/mealPlanRoutes";
 
 dotenv.config();
 
@@ -47,7 +48,11 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 app.use('/api/collections', collectionRoutes);
 
 // Маршруты времени приготовления
-app.use('/api/cooking-times', cookingTimeRoutes);  // <-- подключение нового маршрута
+app.use('/api/cooking-times', cookingTimeRoutes);
+
+//  Маршруты планеров
+app.use("/api/meal-plans", mealPlanRoutes);
+
 
 
 const seedIngredientUnits = async () => {
