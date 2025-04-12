@@ -54,16 +54,6 @@ RecipeImage.belongsTo(Recipe, {
 });
 
 
-/** ---------- Связь Ingredient -> IngredientUnits (многие к одному) ----------
- *  Предположим, что в таблице Ingredients есть столбец unit_id, который ссылается на ing_unit_id.
- *  Если в диаграмме именно так, нужно добавить это поле в модель Ingredient.
- *  Пример (в Ingredient.ts):
- *     declare unit_id: number;
- *  Тогда:
- */
-Ingredient.belongsTo(IngredientUnits, { foreignKey: 'unit_id' });
-IngredientUnits.hasMany(Ingredient, { foreignKey: 'unit_id' });
-
 /** ---------- Связи между Recipes и MealTypes через RecipesMealTypes ---------- */
 Recipe.belongsToMany(MealTypes, {
     through: RecipesMealTypes,
@@ -142,6 +132,12 @@ CookingTime.hasMany(Recipe, {
 CollectionsRecipes.belongsTo(Recipe, {
     foreignKey: 'recipe_id',
     as: 'recipe',
+});
+
+
+RecipesIngredients.belongsTo(IngredientUnits, {
+    foreignKey: 'unit_id',
+    as: 'unit'
 });
 
 

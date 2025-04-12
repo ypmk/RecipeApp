@@ -117,6 +117,7 @@ router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response
  * READ - GET /api/recipes/:id
  * Получить конкретный рецепт (по ID), если он принадлежит текущему пользователю
  */
+// GET /api/recipes/:id — получить рецепт с единицами измерения из join‑записи
 router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
     try {
         const userId = req.user?.id;
@@ -127,7 +128,7 @@ router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Respo
 
         const recipeId = parseInt(req.params.id, 10);
 
-        // Добавляем include для CookingTime (alias: 'cookingTime')
+        // Получаем рецепт с ингредиентами.
         const recipe = await Recipe.findOne({
             where: { recipe_id: recipeId },
             include: [
@@ -139,13 +140,7 @@ router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Respo
                 {
                     model: Ingredient,
                     as: 'ingredients',
-                    include: [
-                        {
-                            model: IngredientUnits,
-                            attributes: ['name'],
-                        },
-                    ],
-                    through: { attributes: ['quantity'] },
+                    through: { attributes: ['quantity', 'unit_id'] },
                 },
                 {
                     model: RecipeImage,
@@ -163,7 +158,37 @@ router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Respo
             return;
         }
 
-        const data = recipe.toJSON();
+        // Преобразуем данные рецепта в объект
+        const data: any = recipe.toJSON();
+
+        // Собираем все unit_id из записей join (RecipesIngredients)
+        const unitIdsSet = new Set<number>();
+        data.ingredients.forEach((ing: any) => {
+            const joinData = ing.RecipesIngredients;
+            if (joinData && joinData.unit_id) {
+                unitIdsSet.add(joinData.unit_id);
+            }
+        });
+        const unitIds = Array.from(unitIdsSet);
+
+        // Запрашиваем информацию об единицах измерения из IngredientUnits
+        const units = await IngredientUnits.findAll({
+            where: { ing_unit_id: unitIds },
+            attributes: ['ing_unit_id', 'name'],
+        });
+        const unitMap: Record<number, string> = {};
+        units.forEach((unit: any) => {
+            unitMap[unit.ing_unit_id] = unit.name;
+        });
+
+        // Для каждого ингредиента «пришиваем» значение unitName, взятое из join‑записи через unit_id
+        data.ingredients = data.ingredients.map((ing: any) => {
+            if (ing.RecipesIngredients && ing.RecipesIngredients.unit_id) {
+                ing.RecipesIngredients.unitName = unitMap[ing.RecipesIngredients.unit_id] || '';
+            }
+            return ing;
+        });
+
         data.main_image = data.main_image ? `/${data.main_image}` : '/pasta.jpg';
         res.json(data);
     } catch (error) {
@@ -172,6 +197,8 @@ router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Respo
         return;
     }
 });
+
+
 
 
 
@@ -439,6 +466,7 @@ router.delete('/:recipeId/images/:imageId', authenticateJWT, async (req: Authent
  * PUT /api/recipes/:recipeId/ingredients/:ingredientId
  * Обновляет ингредиент в рецепте: имя, единицу измерения и количество.
  */
+// PUT /api/recipes/:recipeId/ingredients/:ingredientId
 router.put('/:recipeId/ingredients/:ingredientId', authenticateJWT, async (req: AuthenticatedRequest, res) => {
     try {
         const userId = req.user?.id;
@@ -448,7 +476,7 @@ router.put('/:recipeId/ingredients/:ingredientId', authenticateJWT, async (req: 
 
         if (!userId) {
             res.status(401).json({ message: 'Unauthorized' });
-            return
+            return;
         }
 
         // Проверка принадлежности рецепта пользователю
@@ -463,7 +491,7 @@ router.put('/:recipeId/ingredients/:ingredientId', authenticateJWT, async (req: 
 
         if (!recipe) {
             res.status(404).json({ message: 'Recipe not found or not owned by user' });
-            return
+            return;
         }
 
         // Обновляем количество в связующей таблице
@@ -473,40 +501,42 @@ router.put('/:recipeId/ingredients/:ingredientId', authenticateJWT, async (req: 
 
         if (!link) {
             res.status(404).json({ message: 'Ingredient link not found for this recipe' });
-            return
+            return;
         }
 
         if (quantity !== undefined) {
             link.quantity = quantity;
+            // НО: здесь нужно также обновить unit_id в этой же записи, если приходит новый unit_id
+            if (unit_id !== undefined) {
+                link.unit_id = unit_id;
+            }
             await link.save();
         }
 
-        // Обновляем сам ингредиент (название и единицу измерения)
+        // Обновляем сам ингредиент — только название, но не единицу измерения
         const ingredient = await Ingredient.findOne({ where: { ingredient_id: ingredientId, user_id: userId } });
 
         if (!ingredient) {
             res.status(404).json({ message: 'Ingredient not found or not owned by user' });
-            return
+            return;
         }
 
         if (name !== undefined) {
             ingredient.name = name;
         }
-
-        if (unit_id !== undefined) {
-            ingredient.unit_id = unit_id;
-        }
+        // НЕ ОБНОВЛЯЕМ ingredient.unit_id, чтобы единица измерения для этого рецепта не менялась для всех рецептов
 
         await ingredient.save();
 
         res.json({ message: 'Ingredient updated successfully' });
-        return
+        return;
     } catch (error) {
         console.error('Ошибка при обновлении ингредиента:', error);
         res.status(500).json({ message: 'Server error' });
-        return
+        return;
     }
 });
+
 
 
 /**

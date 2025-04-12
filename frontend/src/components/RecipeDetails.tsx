@@ -1,22 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import {useNavigate, useParams} from 'react-router-dom';
-import Lightbox from "react-image-lightbox";
+import { useNavigate, useParams } from 'react-router-dom';
+import Lightbox from 'react-image-lightbox';
 import 'react-image-lightbox/style.css';
-import RecipeCollectionsSelector from './RecipeCollectionsSelector'; // Импортируем компонент
+import RecipeCollectionsSelector from './RecipeCollectionsSelector';
 
-// Интерфейсы для рецепта и ингредиентов (оставляем ваши)
 interface RecipeIngredientInfo {
     quantity: number;
+    // Новое поле для единицы измерения, которое мы должны заполнить сервером
+    unitName?: string;
 }
 
 interface Ingredient {
     ingredient_id: number;
     name: string;
+    // Используем данные из join-записи
     RecipesIngredients: RecipeIngredientInfo;
-    IngredientUnit?: {
-        name: string;
-    };
 }
 
 interface RecipeImage {
@@ -56,11 +55,12 @@ const RecipeDetails: React.FC = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        axios
-            .get<Recipe>(`/api/recipes/${recipeId}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-            })
-            .then((res) => {
+        async function fetchRecipe() {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await axios.get<Recipe>(`/api/recipes/${recipeId}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
                 const data = res.data;
                 const images: string[] = [];
                 if (data.main_image) {
@@ -81,11 +81,12 @@ const RecipeDetails: React.FC = () => {
                 setAllImages(images);
                 setRecipe(data);
                 setLoading(false);
-            })
-            .catch((err) => {
+            } catch (err) {
                 console.error(err);
                 setLoading(false);
-            });
+            }
+        }
+        fetchRecipe();
     }, [recipeId]);
 
     if (loading) return <div className="p-4">Загрузка рецепта...</div>;
@@ -106,7 +107,14 @@ const RecipeDetails: React.FC = () => {
                         onClick={() => navigate(`/recipes/${recipe.recipe_id}/edit`)}
                         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-blue-700 transition"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="w-4 h-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                        >
                             <path strokeLinecap="round" strokeLinejoin="round" d="M11 4h10M5 20h10M4 4l16 16" />
                         </svg>
                         Редактировать
@@ -117,7 +125,11 @@ const RecipeDetails: React.FC = () => {
             {/* Главное изображение */}
             <div className="w-full aspect-[5/2] rounded-xl overflow-hidden mb-6">
                 <img
-                    src={recipe.main_image.startsWith('/') ? recipe.main_image : `/${recipe.main_image}`}
+                    src={
+                        recipe.main_image.startsWith('/')
+                            ? recipe.main_image
+                            : `/${recipe.main_image}`
+                    }
                     alt="Главное изображение рецепта"
                     className="w-full h-full object-cover cursor-pointer"
                     onClick={() => {
@@ -127,16 +139,19 @@ const RecipeDetails: React.FC = () => {
                 />
             </div>
 
-            {/* Остальной контент рецепта */}
+            {/* Ингредиенты рецепта */}
             <h2 className="text-[22px] font-bold text-[#1C160C] px-4 pb-3">Ингредиенты:</h2>
             <div className="p-4 grid grid-cols-[20%_1fr] gap-x-6">
                 {recipe.ingredients && recipe.ingredients.length > 0 ? (
                     recipe.ingredients.map((ingredient) => (
-                        <div key={ingredient.ingredient_id} className="col-span-2 grid grid-cols-subgrid border-t border-t-[#E9DFCE] py-5">
+                        <div
+                            key={ingredient.ingredient_id}
+                            className="col-span-2 grid grid-cols-subgrid border-t border-t-[#E9DFCE] py-5"
+                        >
                             <p className="text-[#A18249] text-sm">{ingredient.name}</p>
                             <p className="text-[#1C160C] text-sm">
                                 {ingredient.RecipesIngredients.quantity}{' '}
-                                {ingredient.IngredientUnit?.name ?? ''}
+                                {ingredient.RecipesIngredients.unitName ?? ''}
                             </p>
                         </div>
                     ))
@@ -161,26 +176,33 @@ const RecipeDetails: React.FC = () => {
                     <h2 className="text-[22px] font-bold text-[#1C160C] px-4 pb-3 pt-5">
                         Время приготовления:
                     </h2>
-                    <p className="text-[#1C160C] text-base px-4 pt-1 pb-3">{recipe.cookingTime.label}</p>
+                    <p className="text-[#1C160C] text-base px-4 pt-1 pb-3">
+                        {recipe.cookingTime.label}
+                    </p>
                 </>
             )}
-
 
             {recipe.number_of_servings && (
                 <>
                     <h2 className="text-[22px] font-bold text-[#1C160C] px-4 pb-3 pt-5">
                         Количество порций:
                     </h2>
-                    <p className="text-[#1C160C] text-base px-4 pt-1 pb-5">{recipe.number_of_servings}</p>
+                    <p className="text-[#1C160C] text-base px-4 pt-1 pb-5">
+                        {recipe.number_of_servings}
+                    </p>
                 </>
             )}
 
             {recipe.images && recipe.images.length > 0 && (
                 <div className="mb-6">
-                    <h2 className="text-[22px] font-bold text-[#1C160C] px-4 pb-3 pt-5">Дополнительные изображения</h2>
+                    <h2 className="text-[22px] font-bold text-[#1C160C] px-4 pb-3 pt-5">
+                        Дополнительные изображения
+                    </h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 px-4">
                         {recipe.images.map((img, index) => {
-                            const imageUrl = img.image_path.startsWith('/') ? img.image_path : `/${img.image_path}`;
+                            const imageUrl = img.image_path.startsWith('/')
+                                ? img.image_path
+                                : `/${img.image_path}`;
                             const sliderIndex = index + 1;
                             return (
                                 <div key={img.id} className="w-full h-32 overflow-hidden rounded-lg">
@@ -204,15 +226,21 @@ const RecipeDetails: React.FC = () => {
                 <Lightbox
                     mainSrc={allImages[photoIndex]}
                     nextSrc={allImages[(photoIndex + 1) % allImages.length]}
-                    prevSrc={allImages[(photoIndex + allImages.length - 1) % allImages.length]}
+                    prevSrc={
+                        allImages[(photoIndex + allImages.length - 1) % allImages.length]
+                    }
                     onCloseRequest={() => setIsLightboxOpen(false)}
-                    onMovePrevRequest={() => setPhotoIndex((photoIndex + allImages.length - 1) % allImages.length)}
-                    onMoveNextRequest={() => setPhotoIndex((photoIndex + 1) % allImages.length)}
+                    onMovePrevRequest={() =>
+                        setPhotoIndex((photoIndex + allImages.length - 1) % allImages.length)
+                    }
+                    onMoveNextRequest={() =>
+                        setPhotoIndex((photoIndex + 1) % allImages.length)
+                    }
                     enableZoom={true}
                 />
             )}
 
-            {/* Отображаем модальное окно для работы с коллекциями */}
+            {/* Модальное окно для работы с коллекциями */}
             {showCollections && (
                 <RecipeCollectionsSelector
                     recipeId={recipe.recipe_id}

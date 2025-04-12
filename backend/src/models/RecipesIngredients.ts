@@ -15,6 +15,7 @@ class RecipesIngredients extends Model<
     declare recipe_id: number;
     declare ingredient_id: number;
     declare quantity: number;
+    declare unit_id: number;
 
     declare createdAt: CreationOptional<Date>;
     declare updatedAt: CreationOptional<Date>;
@@ -38,6 +39,14 @@ RecipesIngredients.init(
         quantity: {
             type: DataTypes.FLOAT,
             allowNull: false,
+        },
+        unit_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            references: {
+                model: 'ingredient_units',
+                key: 'ing_unit_id',
+            },
         },
         createdAt: DataTypes.DATE,
         updatedAt: DataTypes.DATE,

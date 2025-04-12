@@ -8,16 +8,15 @@ const router = Router({ mergeParams: true });
 /**
  * POST /api/recipes/:recipeId/ingredients
  * Добавляет ингредиент к рецепту.
- * Если ингредиент с таким именем уже существует у пользователя, он не создаётся заново,
- * а.tsx создаётся запись в таблице recipes_ingredients с указанным количеством.
- * Если такой ингредиент уже добавлен к рецепту, возвращаем 409 Conflict.
+ * Если ингредиент с таким именем уже существует у пользователя, он не создаётся заново.
+ * При создании записи в join‑таблице сохраняется единица измерения (unit_id) как указано в запросе.
  */
 router.post('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
     try {
         const userId = req.user?.id;
         if (!userId) {
             res.status(401).json({ message: 'Unauthorized' });
-            return
+            return;
         }
 
         const recipeId = parseInt(req.params.recipeId, 10);
@@ -25,24 +24,24 @@ router.post('/', authenticateJWT, async (req: AuthenticatedRequest, res: Respons
 
         if (!name || !unit_id || quantity == null) {
             res.status(400).json({ message: 'Missing ingredient name, unit_id or quantity' });
-            return
+            return;
         }
 
-        // Проверяем, существует ли уже ингредиент с таким именем для данного пользователя
+        // Проверяем, существует ли уже ингредиент с таким именем для данного пользователя.
+        // Заметим – единица измерения здесь может использоваться как дефолт, но для рецепта будет своя.
         let ingredient = await Ingredient.findOne({
             where: { name, user_id: userId },
         });
 
         if (!ingredient) {
-            // Если ингредиент не найден — создаём новый
+            // Создаем новый мастер-ингредиент с дефолтной единицей.
             ingredient = await Ingredient.create({
                 name,
-                unit_id,
                 user_id: userId,
             });
         }
 
-        // Проверяем, не добавлен ли уже этот ингредиент к данному рецепту
+        // Проверяем, не добавлен ли уже этот ингредиент к данному рецепту.
         const existingRecipeIngredient = await RecipesIngredients.findOne({
             where: { recipe_id: recipeId, ingredient_id: ingredient.ingredient_id },
         });
@@ -52,25 +51,26 @@ router.post('/', authenticateJWT, async (req: AuthenticatedRequest, res: Respons
                 message: 'Ingredient already added to this recipe',
                 recipeIngredient: existingRecipeIngredient,
             });
-            return
+            return;
         }
 
-        // Создаём связь между рецептом и ингредиентом с указанием количества
+        // При создании связи используем unit_id, полученный из запроса – это та единица, которую выбрал пользователь для данного рецепта.
         const recipeIngredient = await RecipesIngredients.create({
             recipe_id: recipeId,
             ingredient_id: ingredient.ingredient_id,
             quantity,
+            unit_id,
         });
 
         res.status(201).json({
             message: 'Ingredient added to recipe',
             recipeIngredient,
         });
-        return
+        return;
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
-        return
+        return;
     }
 });
 

@@ -4,7 +4,7 @@ import ShoppingListView from "../components/ShoppingListView.tsx";
 
 
 const ListsPage: React.FC = () => {
-    const someId = 19;
+    const someId = 23;
     return (
         <div>
             <Header />

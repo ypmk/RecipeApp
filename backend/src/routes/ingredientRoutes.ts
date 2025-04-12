@@ -16,9 +16,9 @@ router.post('/', authenticateJWT, async (req: AuthenticatedRequest, res: Respons
             return
         }
 
-        const { name, unit_id } = req.body;
+        const { name } = req.body;
 
-        if (!name || !unit_id) {
+        if (!name) {
             res.status(400).json({ message: 'Missing name or unit_id' });
             return
         }
@@ -37,7 +37,6 @@ router.post('/', authenticateJWT, async (req: AuthenticatedRequest, res: Respons
 
         const newIngredient = await Ingredient.create({
             name,
-            unit_id,
             user_id: userId,
         });
 
