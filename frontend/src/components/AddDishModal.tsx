@@ -4,11 +4,22 @@ import SearchBar from './SearchBar';
 import FilterModal, { FilterParams } from './FilterModal';
 import { FaPlus } from 'react-icons/fa';
 
+interface Collection {
+    collection_id: number;
+    name: string;
+}
+
+interface CookingTime {
+    id: number;
+    label: string;
+}
+
 interface Recipe {
     recipe_id: number;
     name: string;
     main_image: string;
-
+    cookingTime?: CookingTime;
+    collections?: Collection[];
 }
 
 interface AddDishModalProps {
@@ -27,10 +38,12 @@ const AddDishModal: React.FC<AddDishModalProps> = ({
                                                        onDishAdded,
                                                    }) => {
     const [searchQuery, setSearchQuery] = useState<string>('');
+
     const [filters, setFilters] = useState<FilterParams>({ timeCooking: "", selectedCollections: [] });
     const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
+
 
     const fetchRecipes = async () => {
         setLoading(true);
@@ -39,7 +52,6 @@ const AddDishModal: React.FC<AddDishModalProps> = ({
                 params: { search: searchQuery },
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
             });
-
             setRecipes(response.data);
         } catch (error) {
             console.error('Ошибка при загрузке рецептов:', error);
@@ -48,11 +60,29 @@ const AddDishModal: React.FC<AddDishModalProps> = ({
         }
     };
 
+
     useEffect(() => {
         if (isOpen) {
             fetchRecipes();
         }
     }, [isOpen, searchQuery, filters]);
+
+
+    const filteredRecipes = recipes.filter(recipe => {
+
+        let matchesTime = true;
+        if (filters.timeCooking && filters.timeCooking !== "не важно") {
+            const selectedId = Number(filters.timeCooking);
+            matchesTime = recipe.cookingTime ? recipe.cookingTime.id === selectedId : false;
+        }
+        let matchesCollections = true;
+        if (filters.selectedCollections.length > 0) {
+            matchesCollections = recipe.collections
+                ? recipe.collections.some(col => filters.selectedCollections.includes(col.collection_id))
+                : false;
+        }
+        return matchesTime && matchesCollections;
+    });
 
     const handleAddRecipe = async (recipeId: number) => {
         try {
@@ -103,11 +133,11 @@ const AddDishModal: React.FC<AddDishModalProps> = ({
                     </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {loading ? (
-                        <p>Загрузка рецептов...</p>
-                    ) : (
-                        recipes.map(recipe => (
+                {loading ? (
+                    <p>Загрузка рецептов...</p>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {filteredRecipes.map(recipe => (
                             <div key={recipe.recipe_id} className="relative group border rounded-md overflow-hidden">
                                 <img
                                     src={recipe.main_image || '/placeholder.jpg'}
@@ -127,9 +157,9 @@ const AddDishModal: React.FC<AddDishModalProps> = ({
                                     <p className="text-sm font-semibold">{recipe.name}</p>
                                 </div>
                             </div>
-                        ))
-                    )}
-                </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {isFilterOpen && (
