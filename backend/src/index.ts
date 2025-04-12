@@ -17,6 +17,7 @@ import collectionRoutes from "./routes/collectionRoutes";
 import CookingTime from "./models/CookingTime";
 import cookingTimeRoutes from "./routes/cookingTimeRoutes";
 import mealPlanRoutes from "./routes/mealPlanRoutes";
+import shoppingListRoutes from "./routes/shoppingListRoutes";
 
 dotenv.config();
 
@@ -52,6 +53,12 @@ app.use('/api/cooking-times', cookingTimeRoutes);
 
 //  Маршруты планеров
 app.use("/api/meal-plans", mealPlanRoutes);
+
+//  Списков покупок
+app.use('/api/meal-plans', shoppingListRoutes);
+
+// Список покупок
+app.use("/api/shopping-lists", shoppingListRoutes);
 
 
 

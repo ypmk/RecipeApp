@@ -15,6 +15,7 @@ class ShoppingItems extends Model<
     declare shopping_list_id: number;
     declare ingredient_id: number;
     declare quantity: number;
+    declare unit: string;
 
     declare createdAt: CreationOptional<Date>;
     declare updatedAt: CreationOptional<Date>;
@@ -38,6 +39,11 @@ ShoppingItems.init(
         quantity: {
             type: DataTypes.FLOAT,
             allowNull: false,
+        },
+        unit: {
+            type: DataTypes.STRING(10),
+            allowNull: false,
+            defaultValue: '',
         },
         createdAt: DataTypes.DATE,
         updatedAt: DataTypes.DATE,

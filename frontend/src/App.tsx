@@ -5,7 +5,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import './index.css';
 import CollectionsListPage from "./pages/CollectionsListPage.tsx";
-import Lists from "./pages/Lists.tsx";
+import ListsPage from "./pages/ListsPage.tsx";
 import RecipesList from "./components/RecipesList.tsx";
 import './api/axiosConfig'
 import RecipeDetailsPage from "./pages/RecipeDetailsPage.tsx";
@@ -34,7 +34,7 @@ const App: React.FC = () => {
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
 
-                    <Route path="/lists" element={<Lists />} />
+                    <Route path="/lists" element={<ListsPage />} />
 
                     <Route path="/recipes" element={<RecipesList searchQuery={''} filters={{
                         timeCooking: '',

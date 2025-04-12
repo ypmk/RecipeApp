@@ -5,6 +5,7 @@ import axios from 'axios';
 import AddDishModal from '../components/AddDishModal';
 import ConfirmModal from '../components/ConfirmModal';
 import { FaPlus, FaMinus, FaTrash } from 'react-icons/fa';
+import ShoppingListGenerator from "./ShoppingListGenerator.tsx";
 
 interface MealPlan {
     meal_plan_id: number;
@@ -48,6 +49,9 @@ const PlanerDetailPage: React.FC = () => {
 
     // Состояния для подтверждения удаления планера
     const [confirmPlanOpen, setConfirmPlanOpen] = useState<boolean>(false);
+
+    const numericPlanId = mealPlanId ? parseInt(mealPlanId, 10) : 0;
+
 
     // Функция загрузки данных планера
     const fetchMealPlan = async () => {
@@ -187,6 +191,10 @@ const PlanerDetailPage: React.FC = () => {
                 </button>
             </div>
 
+            <div className="mt-6">
+                <ShoppingListGenerator mealPlanId={numericPlanId} />
+            </div>
+
             {/* Карточки дней */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 {dayNumbers.map(day => (
@@ -250,6 +258,7 @@ const PlanerDetailPage: React.FC = () => {
             >
                 Добавить день
             </button>
+
 
             {/* Модалка для добавления блюда */}
             {showAddDishModal && selectedDay !== null && (
