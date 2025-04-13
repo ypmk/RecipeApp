@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Lightbox from 'react-image-lightbox';
 import 'react-image-lightbox/style.css';
 import RecipeCollectionsSelector from './RecipeCollectionsSelector';
+import {Bookmark, Edit3} from "lucide-react";
 
 interface RecipeIngredientInfo {
     quantity: number;
@@ -95,29 +96,26 @@ const RecipeDetails: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
                 <h1 className="text-3xl font-black text-[#1C160C]">{recipe.name}</h1>
                 <div className="flex gap-2">
-                    <button
-                        onClick={() => setShowCollections(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-yellow-400 text-black text-sm font-medium rounded-md hover:bg-yellow-500 transition shadow"
-                    >
-                        + В коллекцию
-                    </button>
+                    {/* Кнопка "Редактировать" */}
                     <button
                         onClick={() => navigate(`/recipes/${recipe.recipe_id}/edit`)}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-blue-700 transition"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-800 text-sm font-bold rounded-lg hover:bg-gray-100 transition"
                     >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="w-4 h-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M11 4h10M5 20h10M4 4l16 16" />
-                        </svg>
-                        Редактировать
+                        <Edit3 size={24} strokeWidth={2}/>
+
+                    </button>
+                    {/* Кнопка "Добавить в коллекцию"*/}
+                    <button
+                        onClick={() => setShowCollections(true)}
+                        title="Добавить в коллекцию"
+                        className="p-2 bg-white border border-gray-300 text-gray-800 rounded-lg hover:bg-gray-100 transition shadow-sm "
+                    >
+                        <Bookmark size={24} strokeWidth={2}/>
                     </button>
                 </div>
+
+
+
             </div>
 
             {/* Главное изображение */}
