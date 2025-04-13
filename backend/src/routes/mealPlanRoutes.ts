@@ -2,7 +2,7 @@
 import { Router } from "express";
 import MealPlans from "../models/MealPlans";
 import { authenticateJWT, AuthenticatedRequest } from "../middleware/auth";
-import {MealPlanRecipes, Recipe} from "../models";
+import { MealPlanRecipes, Recipe } from "../models";
 
 const router = Router();
 
@@ -33,16 +33,12 @@ router.param("mealPlanId", async (req, res, next, mealPlanId) => {
     }
 });
 
-
-
 // Теперь в обработчиках можно не дублировать код поиска:
 router.get("/:mealPlanId", (req, res) => {
     // mealPlan уже лежит в req
     const mealPlan = (req as any).mealPlan;
     res.json(mealPlan);
 });
-
-
 
 router.post("/:mealPlanId/days", async (req, res) => {
     try {
@@ -55,8 +51,8 @@ router.post("/:mealPlanId/days", async (req, res) => {
     }
 });
 
-
-
+// Изменённый эндпоинт: добавление блюда в день планера.
+// Если рецепт уже есть в выбранном дне, то увеличивается его количество.
 router.post("/:mealPlanId/days/:day/recipes", authenticateJWT, async (req: AuthenticatedRequest, res) => {
     try {
         const { mealPlanId, day } = req.params;
@@ -67,24 +63,42 @@ router.post("/:mealPlanId/days/:day/recipes", authenticateJWT, async (req: Authe
             return
         }
 
-        const newRecord = await MealPlanRecipes.create({
-            meal_plan_id: Number(mealPlanId),
-            recipe_id: recipe_id,
-            day: Number(day),
-            meal_type: meal_type,
-            quantity: quantity || 1,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+        const newQuantity = Number(quantity) || 1;
+
+        // Проверяем, существует ли уже для данного плана, дня и рецепта запись
+        const existing = await MealPlanRecipes.findOne({
+            where: {
+                meal_plan_id: Number(mealPlanId),
+                day: Number(day),
+                recipe_id: recipe_id,
+            }
         });
 
-        res.status(201).json(newRecord);
+        if (existing) {
+            // Если такой рецепт уже добавлен в этот день, увеличиваем его количество
+            existing.quantity += newQuantity;
+            await existing.save();
+            res.status(200).json({ message: "Количество обновлено", record: existing });
+            return
+        } else {
+            // Иначе создаём новую запись
+            const newRecord = await MealPlanRecipes.create({
+                meal_plan_id: Number(mealPlanId),
+                recipe_id: recipe_id,
+                day: Number(day),
+                meal_type: meal_type,
+                quantity: newQuantity,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            });
+           res.status(201).json(newRecord);
+            return
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Ошибка при добавлении блюда в планер" });
     }
 });
-
-
 
 /**
  * Создание нового планера
@@ -95,13 +109,13 @@ router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res) => {
         const userId = req.user?.id;
         if (!userId) {
             res.status(401).json({ message: "Unauthorized" });
-            return
+            return;
         }
 
         const { name, total_days } = req.body;
         if (!name) {
             res.status(400).json({ message: "Название планера обязательно" });
-            return
+            return;
         }
 
         const days = total_days ? Number(total_days) : 1;
@@ -114,13 +128,12 @@ router.post("/", authenticateJWT, async (req: AuthenticatedRequest, res) => {
         });
 
         res.status(201).json(newMealPlan);
-        return
+        return;
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Ошибка при создании планера" });
     }
 });
-
 
 // GET /api/meal-plans
 router.get("/", async (req: AuthenticatedRequest, res) => {
@@ -128,7 +141,7 @@ router.get("/", async (req: AuthenticatedRequest, res) => {
         const userId = req.user?.id;
         if (!userId) {
             res.status(401).json({ message: "Unauthorized" });
-            return
+            return;
         }
         // Находим все планеры, принадлежащие пользователю
         const mealPlans = await MealPlans.findAll({
@@ -142,7 +155,6 @@ router.get("/", async (req: AuthenticatedRequest, res) => {
     }
 });
 
-
 // Удалить планер
 router.delete("/:mealPlanId", async (req: AuthenticatedRequest, res) => {
     try {
@@ -155,7 +167,6 @@ router.delete("/:mealPlanId", async (req: AuthenticatedRequest, res) => {
     }
 });
 
-
 // Получение всех блюд планера, сгруппированных по дням
 // GET /api/meal-plans/:mealPlanId/recipes
 router.get("/:mealPlanId/recipes", async (req: AuthenticatedRequest, res) => {
@@ -164,7 +175,7 @@ router.get("/:mealPlanId/recipes", async (req: AuthenticatedRequest, res) => {
         const mealPlan = (req as any).mealPlan;
         if (!mealPlan) {
             res.status(404).json({ message: "Планер не найден" });
-            return
+            return;
         }
 
         const records = await MealPlanRecipes.findAll({
@@ -177,14 +188,12 @@ router.get("/:mealPlanId/recipes", async (req: AuthenticatedRequest, res) => {
             order: [["day", "ASC"]],
         });
 
-
         res.json(records);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Ошибка при получении блюд планера" });
     }
 });
-
 
 // Удаление блюда из дня
 // DELETE /api/meal-plans/:mealPlanId/days/:day/recipes/:recipeId
@@ -200,7 +209,7 @@ router.delete("/:mealPlanId/days/:day/recipes/:recipeId", async (req: Authentica
         });
         if (!record) {
             res.status(404).json({ message: "Блюдо не найдено в данном дне" });
-            return
+            return;
         }
         await record.destroy();
         res.json({ message: "Блюдо удалено из дня" });
@@ -209,7 +218,6 @@ router.delete("/:mealPlanId/days/:day/recipes/:recipeId", async (req: Authentica
         res.status(500).json({ message: "Ошибка при удалении блюда" });
     }
 });
-
 
 // Изменение количества блюд
 // PUT /api/meal-plans/:mealPlanId/days/:day/recipes/:recipeId
@@ -220,7 +228,7 @@ router.put("/:mealPlanId/days/:day/recipes/:recipeId", async (req: Authenticated
 
         if (quantity === undefined) {
             res.status(400).json({ message: "quantity не передан" });
-            return
+            return;
         }
 
         const record = await MealPlanRecipes.findOne({
@@ -232,7 +240,7 @@ router.put("/:mealPlanId/days/:day/recipes/:recipeId", async (req: Authenticated
         });
         if (!record) {
             res.status(404).json({ message: "Блюдо не найдено в данном дне" });
-            return
+            return;
         }
 
         record.quantity = quantity;
@@ -243,8 +251,5 @@ router.put("/:mealPlanId/days/:day/recipes/:recipeId", async (req: Authenticated
         res.status(500).json({ message: "Ошибка при обновлении количества блюда" });
     }
 });
-
-
-
 
 export default router;

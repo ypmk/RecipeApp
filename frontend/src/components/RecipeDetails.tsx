@@ -7,14 +7,12 @@ import RecipeCollectionsSelector from './RecipeCollectionsSelector';
 
 interface RecipeIngredientInfo {
     quantity: number;
-    // Новое поле для единицы измерения, которое мы должны заполнить сервером
     unitName?: string;
 }
 
 interface Ingredient {
     ingredient_id: number;
     name: string;
-    // Используем данные из join-записи
     RecipesIngredients: RecipeIngredientInfo;
 }
 

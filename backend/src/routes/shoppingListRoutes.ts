@@ -45,7 +45,7 @@ router.post('/:mealPlanId/shopping-list', authenticateJWT, async (req: Authentic
         const { mealPlanId } = req.params;
         if (!userId) {
             res.status(401).json({ message: 'Unauthorized' });
-            return
+            return;
         }
 
         const mealPlan = await MealPlans.findOne({
@@ -53,16 +53,16 @@ router.post('/:mealPlanId/shopping-list', authenticateJWT, async (req: Authentic
         });
         if (!mealPlan) {
             res.status(404).json({ message: 'План питания не найден' });
-            return
+            return;
         }
 
         const planRecipes = await MealPlanRecipes.findAll({ where: { meal_plan_id: mealPlanId } });
         if (planRecipes.length === 0) {
             res.status(400).json({ message: 'В плане питания отсутствуют рецепты' });
-            return
+            return;
         }
 
-        // ---------- ВАЖНО: приводим recipe_id к числу ----------
+        // Приводим recipe_id к числу и создаем карту множителей
         const recipeMultipliers = new Map<number, number>();
         planRecipes.forEach(pr => {
             const rId = Number(pr.recipe_id);
@@ -73,24 +73,46 @@ router.post('/:mealPlanId/shopping-list', authenticateJWT, async (req: Authentic
 
         const recipeIds = planRecipes.map(pr => Number(pr.recipe_id));
 
+        // Загружаем рецепты с ингредиентами. Включаем через join только поля 'quantity' и 'unit_id'
         const recipes = await Recipe.findAll({
             where: { recipe_id: recipeIds },
             include: [{
                 model: Ingredient,
                 as: 'ingredients',
-                include: [{ model: IngredientUnits }],
-                through: { attributes: ['quantity'] },
+                // Убираем include для IngredientUnits, теперь берем unit_id через join
+                through: { attributes: ['quantity', 'unit_id'] },
             }]
         });
 
-        const aggregated = new Map<number, { ingredient_id: number; name: string; quantity: number; baseUnit: string }>();
-
+        // Собираем все unit_id из join-записей
+        const unitIdsSet = new Set<number>();
         recipes.forEach(recipe => {
             const recipeData: any = recipe.toJSON();
+            if (Array.isArray(recipeData.ingredients)) {
+                recipeData.ingredients.forEach((ing: any) => {
+                    if (ing.RecipesIngredients && ing.RecipesIngredients.unit_id) {
+                        unitIdsSet.add(Number(ing.RecipesIngredients.unit_id));
+                    }
+                });
+            }
+        });
+        const unitIds = Array.from(unitIdsSet);
 
-            // ---------- ВАЖНО: приводим recipeData.recipe_id к числу ----------
+        // Запрашиваем данные об единицах измерения из IngredientUnits
+        const units = await IngredientUnits.findAll({
+            where: { ing_unit_id: unitIds },
+            attributes: ['ing_unit_id', 'name'],
+        });
+        const unitMap: Record<number, string> = {};
+        units.forEach((unit: any) => {
+            unitMap[unit.ing_unit_id] = unit.name;
+        });
+
+        // Агрегируем ингредиенты
+        const aggregated = new Map<number, { ingredient_id: number; name: string; quantity: number; baseUnit: string }>();
+        recipes.forEach(recipe => {
+            const recipeData: any = recipe.toJSON();
             const recipeId = Number(recipeData.recipe_id);
-            // Здесь мы корректно получаем multiplier
             const multiplier = recipeMultipliers.get(recipeId) || 1;
 
             if (Array.isArray(recipeData.ingredients)) {
@@ -99,10 +121,14 @@ router.post('/:mealPlanId/shopping-list', authenticateJWT, async (req: Authentic
                     const origQuantity = Number(ing.RecipesIngredients.quantity) || 0;
                     const totalQuantity = origQuantity * multiplier;
 
-                    if (!ing.IngredientUnit || !ing.IngredientUnit.name) {
+                    const unitId = ing.RecipesIngredients.unit_id;
+                    if (!unitId) {
                         throw new Error(`Не найдена единица измерения у ингредиента id=${ingredientId}`);
                     }
-                    const unitName = ing.IngredientUnit.name;
+                    const unitName = unitMap[Number(unitId)];
+                    if (!unitName) {
+                        throw new Error(`Не найдено название единицы измерения для unit_id=${unitId}`);
+                    }
 
                     const { quantity: baseQty, baseUnit } = convertToBase(totalQuantity, unitName);
 
@@ -147,11 +173,11 @@ router.post('/:mealPlanId/shopping-list', authenticateJWT, async (req: Authentic
             message: 'Список покупок успешно создан',
             shoppingList
         });
-        return
+        return;
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
-        return
+        return;
     }
 });
 
@@ -161,9 +187,8 @@ router.get('/:shoppingListId', authenticateJWT, async (req: AuthenticatedRequest
         const { shoppingListId } = req.params;
         if (!userId) {
             res.status(401).json({ message: 'Unauthorized' });
-            return
+            return;
         }
-
         const shoppingList = await ShoppingLists.findOne({
             where: { shopping_list_id: shoppingListId, user_id: userId },
             include: [{
@@ -176,7 +201,7 @@ router.get('/:shoppingListId', authenticateJWT, async (req: AuthenticatedRequest
         });
         if (!shoppingList) {
             res.status(404).json({ message: 'Список покупок не найден' });
-            return
+            return;
         }
         res.json(shoppingList);
     } catch (error) {
