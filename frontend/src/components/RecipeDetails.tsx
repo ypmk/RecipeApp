@@ -163,9 +163,11 @@ const RecipeDetails: React.FC = () => {
                     <h2 className="text-[22px] font-bold text-[#1C160C] px-4 pb-3 pt-5">
                         Способ приготовления:
                     </h2>
-                    <p className="text-[#1C160C] text-base px-4 pt-1 pb-3">
-                        {recipe.instructions}
-                    </p>
+                    <div className="text-[#1C160C] text-base px-4 pt-1 pb-3">
+                        {recipe.instructions.split('\n').map((line, idx) =>
+                            line.trim() === '' ? <br key={idx} /> : <p key={idx} className="pb-1">{line}</p>
+                        )}
+                    </div>
                 </>
             )}
 
