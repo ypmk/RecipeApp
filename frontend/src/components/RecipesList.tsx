@@ -104,7 +104,7 @@ const RecipesList: React.FC<RecipesListProps> = ({ searchQuery, filters }) => {
         <div className="p-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {filteredRecipes.map(recipe => (
-                    <div key={recipe.recipe_id} className="relative bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden">
+                    <div key={recipe.recipe_id} className="relative bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden group">
                         <Link to={`/recipes/${recipe.recipe_id}`} className="block">
                             <img
                                 src={recipe.main_image}
@@ -116,20 +116,23 @@ const RecipesList: React.FC<RecipesListProps> = ({ searchQuery, filters }) => {
                             </div>
                         </Link>
 
-                        <button
-                            onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                requestDeleteRecipe(recipe);
-                            }}
-                            className="absolute top-2 right-2 bg-white text-gray-500 hover:text-red-600 hover:bg-gray-100 rounded-full p-1 shadow transition"
-                            title="Удалить рецепт"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
+                        <div className="absolute top-2 right-2 hidden group-hover:flex">
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    requestDeleteRecipe(recipe);
+                                }}
+                                className="bg-white text-gray-500 hover:text-red-600 hover:bg-gray-100 rounded-full p-1 shadow transition"
+                                title="Удалить рецепт"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
+
 
                 ))}
             </div>
