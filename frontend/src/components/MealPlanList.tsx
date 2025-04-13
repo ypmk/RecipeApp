@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {useNavigate} from "react-router-dom";
 import ConfirmModal from '../components/ConfirmModal';
+import { Trash2 } from 'lucide-react';
+
 
 interface MealPlan {
     meal_plan_id: number;
@@ -76,20 +78,23 @@ const MealPlanList: React.FC = () => {
             {loading ? (
                 <p>Загрузка планеров...</p>
             ) : (
-                <div className="space-y-2 mb-6">
+                <div className="space-y-3">
                     {mealPlans.map(plan => (
                         <div
                             key={plan.meal_plan_id}
-                            className="bg-gray-200 hover:bg-gray-300 transition-colors p-2 rounded flex items-center justify-between cursor-pointer"
                             onClick={() => handlePlanClick(plan.meal_plan_id)}
+                            className="flex items-center justify-between p-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition cursor-pointer"
                         >
-                            <span>{plan.name}</span>
+                            <div className="flex items-center space-x-3">
+
+                                <span className="font-medium truncate max-w-[200px]">{plan.name}</span>
+                            </div>
                             <button
                                 onClick={(e) => handleDeleteClick(e, plan)}
-                                className="bg-red-500 text-white w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-600"
                                 title="Удалить планер"
+                                className="text-gray-500 hover:text-red-600 transition"
                             >
-                                &times;
+                                <Trash2 size={18} />
                             </button>
                         </div>
                     ))}
