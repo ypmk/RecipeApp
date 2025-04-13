@@ -21,9 +21,9 @@ const Home: React.FC = () => {
                         <SearchBar value={searchQuery} onChange={setSearchQuery} />
                         <button
                             onClick={() => setIsFilterOpen(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-[#E4E9F1] text-[#141C24] text-sm font-bold rounded-full"
+                            className="flex items-center gap-2 h-12 px-4 bg-[#E4E9F1] text-[#141C24] text-sm font-bold rounded-xl hover:bg-[#dce2ec] transition"
                         >
-                            <FaFilter />
+                            <FaFilter className="w-4 h-4" />
                             Фильтры
                         </button>
                     </div>

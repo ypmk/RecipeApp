@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import SearchBar from './SearchBar';
 import FilterModal, { FilterParams } from './FilterModal';
-import { FaPlus } from 'react-icons/fa';
+import {FaFilter, FaPlus} from 'react-icons/fa';
 
 interface Collection {
     collection_id: number;
@@ -120,15 +120,13 @@ const AddDishModal: React.FC<AddDishModalProps> = ({
                     </button>
                 </div>
 
-                <div className="flex items-center gap-4 mb-4">
+                <div className="flex items-center mb-4">
                     <SearchBar value={searchQuery} onChange={setSearchQuery} />
                     <button
                         onClick={() => setIsFilterOpen(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-[#E4E9F1] text-[#141C24] text-sm font-bold rounded-full"
+                        className="flex items-center gap-1 h-12 px-4 bg-[#E4E9F1] text-[#141C24] text-sm font-medium rounded-xl hover:bg-[#dce2ec] transition"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                            <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z" />
-                        </svg>
+                        <FaFilter className="w-4 h-4" />
                         Фильтры
                     </button>
                 </div>
