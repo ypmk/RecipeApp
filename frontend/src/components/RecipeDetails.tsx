@@ -4,7 +4,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Lightbox from 'react-image-lightbox';
 import 'react-image-lightbox/style.css';
 import RecipeCollectionsSelector from './RecipeCollectionsSelector';
-import {Bookmark, Edit3} from "lucide-react";
+import {Bookmark, Edit3, Trash2} from "lucide-react";
+import ConfirmModal from "./ConfirmModal.tsx";
 
 interface RecipeIngredientInfo {
     quantity: number;
@@ -51,7 +52,25 @@ const RecipeDetails: React.FC = () => {
     // Состояние для отображения окна коллекций
     const [showCollections, setShowCollections] = useState(false);
 
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
     const navigate = useNavigate();
+
+
+    const handleDeleteConfirm = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            await axios.delete(`/api/recipes/${recipeId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            navigate('/'); // редирект после удаления
+        } catch (error) {
+            console.error('Ошибка при удалении рецепта:', error);
+            alert('Не удалось удалить рецепт');
+        }
+    };
+
+
 
     useEffect(() => {
         async function fetchRecipe() {
@@ -96,10 +115,18 @@ const RecipeDetails: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
                 <h1 className="text-3xl font-black text-[#1C160C]">{recipe.name}</h1>
                 <div className="flex gap-2">
+                    {/* Кнопка удаления */}
+                    <button
+                        onClick={() => setIsDeleteModalOpen(true)}
+                        title="Удалить рецепт"
+                        className="p-2 bg-white border border-gray-300 text-red-700 rounded-lg hover:bg-red-200 transition shadow-sm"
+                    >
+                        <Trash2 size={20} strokeWidth={2} />
+                    </button>
                     {/* Кнопка "Редактировать" */}
                     <button
                         onClick={() => navigate(`/recipes/${recipe.recipe_id}/edit`)}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-800 text-sm font-bold rounded-lg hover:bg-gray-100 transition"
+                        className="inline-flex items-center gap-2 px-6 py-2 bg-white border border-gray-300 text-gray-800 text-sm font-bold rounded-lg hover:bg-gray-100 transition"
                     >
                         <Edit3 size={24} strokeWidth={2}/>
 
@@ -245,6 +272,15 @@ const RecipeDetails: React.FC = () => {
                     onClose={() => setShowCollections(false)}
                 />
             )}
+            {/* Подтверждение удаления */}
+            <ConfirmModal
+                isOpen={isDeleteModalOpen}
+                title="Удалить рецепт"
+                message={`Вы уверены, что хотите удалить рецепт «${recipe?.name}»?`}
+                onCancel={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleDeleteConfirm}
+            />
+
         </div>
     );
 };
