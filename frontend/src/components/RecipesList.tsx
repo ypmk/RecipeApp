@@ -104,29 +104,33 @@ const RecipesList: React.FC<RecipesListProps> = ({ searchQuery, filters }) => {
         <div className="p-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {filteredRecipes.map(recipe => (
-                    <div key={recipe.recipe_id} className="relative group">
-                        <Link to={`/recipes/${recipe.recipe_id}`} className="block rounded-md shadow-sm overflow-hidden">
+                    <div key={recipe.recipe_id} className="relative bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden">
+                        <Link to={`/recipes/${recipe.recipe_id}`} className="block">
                             <img
                                 src={recipe.main_image}
                                 alt={recipe.name}
-                                className="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105"
+                                className="w-full h-48 object-cover"
                             />
-                            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-40 text-white p-2 text-sm">
+                            <div className="p-3 text-sm font-medium text-gray-800">
                                 {recipe.name}
                             </div>
                         </Link>
+
                         <button
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 requestDeleteRecipe(recipe);
                             }}
-                            className="absolute top-2 right-2 bg-white/80 text-gray-600 rounded-full w-8 h-8 flex items-center justify-center hover:bg-white shadow"
+                            className="absolute top-2 right-2 bg-white text-gray-500 hover:text-red-600 hover:bg-gray-100 rounded-full p-1 shadow transition"
                             title="Удалить рецепт"
                         >
-                            &times;
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
                         </button>
                     </div>
+
                 ))}
             </div>
             <ConfirmModal
