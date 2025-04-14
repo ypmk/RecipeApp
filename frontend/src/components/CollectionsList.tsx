@@ -11,7 +11,12 @@ interface Collection {
     collection_id: number;
     name: string;
     lastRecipeImage?: string | null;
-    updatedAt?: string; // ISO-строка даты последнего изменения
+    updatedAt?: string;
+    recipes?: {
+        id: number;
+        name: string;
+        image: string;
+    }[];
 }
 
 type SortOption = 'updated' | 'alphabetical';
@@ -24,7 +29,6 @@ const CollectionsList: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [collectionToDelete, setCollectionToDelete] = useState<Collection | null>(null);
-
 
     // Функция загрузки коллекций пользователя
     const fetchCollections = async () => {
@@ -133,28 +137,20 @@ const CollectionsList: React.FC = () => {
             {sortedAndFilteredCollections.length === 0 ? (
                 <p>У вас ещё нет коллекций.</p>
             ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                    {sortedAndFilteredCollections.map((collection) => (
-                        <div key={collection.collection_id} className="relative group">
-                            <Link to={`/collections/${collection.collection_id}`} className="block rounded-md shadow-sm overflow-hidden">
-                                {collection.lastRecipeImage ? (
-                                    <img
-                                        src={
-                                            collection.lastRecipeImage.startsWith('/')
-                                                ? collection.lastRecipeImage
-                                                : `/${collection.lastRecipeImage}`
-                                        }
-                                        alt={collection.name}
-                                        className="w-full h-32 object-cover rounded"
-                                    />
-                                ) : (
-                                    <div className="w-full h-32 bg-gray-200 rounded flex items-center justify-center">
-                                        <span className="text-gray-500 text-sm">Нет изображения</span>
-                                    </div>
-                                )}
-                                <div className="text-center mt-2 px-2">
-                                    <h2 className="text-sm font-semibold truncate">{collection.name}</h2>
-                                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+
+                {sortedAndFilteredCollections.map((collection,) => (
+                        <div
+                            key={collection.collection_id}
+                            className="relative group bg-gray-100 hover:bg-gray-200 rounded-lg aspect-square w-32 sm:w-36 md:w-40 flex items-center justify-center text-center p-2 shadow-sm transition duration-150 ease-in-out"
+                        >
+                            <Link
+                                to={`/collections/${collection.collection_id}`}
+                                className="absolute inset-0 flex items-center justify-center px-2"
+                            >
+                                <h2 className="text-xs sm:text-sm font-medium text-gray-800 break-words text-center group-hover:scale-105 transition">
+                                    {collection.name}
+                                </h2>
                             </Link>
 
                             <button
@@ -163,12 +159,13 @@ const CollectionsList: React.FC = () => {
                                     e.stopPropagation();
                                     requestDeleteCollection(collection);
                                 }}
-                                className="absolute top-2 right-2 bg-white/80 text-gray-600 rounded-full w-8 h-8 flex items-center justify-center hover:bg-white shadow"
-                                title="Удалить коллекцию"
+                                className="absolute top-1.5 right-1.5 bg-white text-gray-500 hover:text-red-500 rounded-full w-6 h-6 flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition"
+                                title="Удалить"
                             >
-                                <FaTrash size={14} />
+                                <FaTrash size={10} />
                             </button>
                         </div>
+
                     ))}
                 </div>
             )}

@@ -157,9 +157,11 @@ router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res) => {
                 }) as CollectionsRecipes & { recipe?: { main_image: string } };
 
 
+
+
                 return {
                     ...collection.toJSON(),
-                    lastRecipeImage: lastRecipe?.recipe?.main_image || null,
+                    lastRecipeImage: lastRecipe?.recipe?.main_image ? `/${lastRecipe.recipe.main_image}` : '/default.jpg',
                 };
             })
         );
@@ -229,6 +231,38 @@ router.delete('/:collectionId', authenticateJWT, async (req: AuthenticatedReques
         res.status(500).json({ message: 'Ошибка при удалении коллекции' });
     }
 });
+
+
+// Обновление названия коллекции
+router.put('/:collectionId', authenticateJWT, async (req: AuthenticatedRequest, res) => {
+    try {
+        const userId = req.user?.id;
+        const { collectionId } = req.params;
+        const { name } = req.body;
+
+        const link = await CollectionUsers.findOne({
+            where: { user_id: userId, collection_id: collectionId },
+        });
+
+        if (!link) {
+            res.status(403).json({ message: 'Нет доступа к изменению этой коллекции' });
+            return
+        }
+
+        await Collections.update(
+            { name },
+            { where: { collection_id: collectionId } }
+        );
+
+        res.json({ message: 'Название коллекции обновлено' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Ошибка при обновлении коллекции' });
+    }
+});
+
+
+
 
 
 export default router;

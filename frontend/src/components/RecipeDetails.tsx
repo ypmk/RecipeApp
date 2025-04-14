@@ -63,7 +63,7 @@ const RecipeDetails: React.FC = () => {
             await axios.delete(`/api/recipes/${recipeId}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            navigate('/'); // редирект после удаления
+            navigate('/');
         } catch (error) {
             console.error('Ошибка при удалении рецепта:', error);
             alert('Не удалось удалить рецепт');

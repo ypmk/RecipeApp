@@ -100,7 +100,7 @@ router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response
 
         const result = recipes.map(recipe => {
             const data = recipe.toJSON();
-            data.main_image = data.main_image ? `/${data.main_image}` : '/pasta.jpg';
+            data.main_image = data.main_image ? `/${data.main_image}` : '/default_2.jpg';
             return data;
         });
         res.json(result);
@@ -189,7 +189,7 @@ router.get('/:id', authenticateJWT, async (req: AuthenticatedRequest, res: Respo
             return ing;
         });
 
-        data.main_image = data.main_image ? `/${data.main_image}` : '/pasta.jpg';
+        data.main_image = data.main_image ? `/${data.main_image}` : '/default.jpg';
         res.json(data);
     } catch (error) {
         console.error(error);
