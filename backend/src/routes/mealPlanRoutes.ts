@@ -3,6 +3,7 @@ import { Router } from "express";
 import MealPlans from "../models/MealPlans";
 import { authenticateJWT, AuthenticatedRequest } from "../middleware/auth";
 import { MealPlanRecipes, Recipe } from "../models";
+import {Op} from "sequelize";
 
 const router = Router();
 
@@ -251,5 +252,69 @@ router.put("/:mealPlanId/days/:day/recipes/:recipeId", async (req: Authenticated
         res.status(500).json({ message: "Ошибка при обновлении количества блюда" });
     }
 });
+
+
+// PUT /api/meal-plans/:mealPlanId — обновление названия планера
+router.put("/:mealPlanId", async (req: AuthenticatedRequest, res) => {
+    try {
+        const mealPlan = (req as any).mealPlan;
+        const { name } = req.body;
+
+        if (!name || typeof name !== "string") {
+            res.status(400).json({ message: "Некорректное название планера" });
+            return
+        }
+
+        mealPlan.name = name;
+        await mealPlan.save();
+
+        res.json({ message: "Название обновлено", mealPlan });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Ошибка при обновлении названия" });
+    }
+});
+
+
+// Удаление конкретного дня из планера
+router.delete("/:mealPlanId/days/:day", async (req: AuthenticatedRequest, res) => {
+    try {
+        const mealPlan = (req as any).mealPlan;
+        const { day } = req.params;
+        const dayNumber = Number(day);
+
+        // Удаляем блюда из указанного дня
+        await MealPlanRecipes.destroy({
+            where: {
+                meal_plan_id: mealPlan.meal_plan_id,
+                day: dayNumber,
+            },
+        });
+
+        // Сдвигаем все дни после удалённого на -1
+        const all = await MealPlanRecipes.findAll({
+            where: {
+                meal_plan_id: mealPlan.meal_plan_id,
+                day: { [Op.gt]: dayNumber }
+            },
+        });
+
+        for (const recipe of all) {
+            recipe.day -= 1;
+            await recipe.save();
+        }
+
+        // Обновляем total_days
+        mealPlan.total_days -= 1;
+        await mealPlan.save();
+
+        res.json({ message: `День ${day} удалён`, mealPlan });
+    } catch (error) {
+        console.error("Ошибка при удалении дня:", error);
+        res.status(500).json({ message: "Ошибка при удалении дня" });
+    }
+});
+
+
 
 export default router;

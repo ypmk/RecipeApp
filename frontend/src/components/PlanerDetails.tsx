@@ -4,8 +4,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AddDishModal from '../components/AddDishModal';
 import ConfirmModal from '../components/ConfirmModal';
-import { FaPlus, FaMinus, FaTrash } from 'react-icons/fa';
+import { FaPlus, FaMinus} from 'react-icons/fa';
 import ShoppingListGenerator from "./ShoppingListGenerator.tsx";
+import {Edit3, Plus, Trash2} from "lucide-react";
 
 interface MealPlan {
     meal_plan_id: number;
@@ -52,6 +53,55 @@ const PlanerDetailPage: React.FC = () => {
 
     const numericPlanId = mealPlanId ? parseInt(mealPlanId, 10) : 0;
 
+    // Состояния для редактирования названия планера
+    const [editing, setEditing] = useState<boolean>(false);
+    const [newName, setNewName] = useState<string>('');
+
+    // Состояния для удаления дня планера
+    const [confirmDayOpen, setConfirmDayOpen] = useState<boolean>(false);
+    const [dayToDelete, setDayToDelete] = useState<number | null>(null);
+
+
+    const handleDeleteDayClick = (day: number) => {
+        setDayToDelete(day);
+        setConfirmDayOpen(true);
+    };
+
+    const confirmDeleteDay = async () => {
+        if (!mealPlanId || dayToDelete === null) return;
+        try {
+            await axios.delete(`/api/meal-plans/${mealPlanId}/days/${dayToDelete}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+            });
+            setConfirmDayOpen(false);
+            setDayToDelete(null);
+            refreshData();
+        } catch (error) {
+            console.error("Ошибка при удалении дня", error);
+            alert("Не удалось удалить день");
+        }
+    };
+
+
+
+    const handleEditClick = () => {
+        setNewName(mealPlan?.name || '');
+        setEditing(true);
+    };
+
+    const handleSaveClick = async () => {
+        if (!mealPlanId) return;
+        try {
+            await axios.put(`/api/meal-plans/${mealPlanId}`, { name: newName }, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+            });
+            setMealPlan((prev) => prev ? { ...prev, name: newName } : prev);
+            setEditing(false);
+        } catch (err) {
+            console.error(err);
+            alert('Ошибка при обновлении названия');
+        }
+    };
 
     // Функция загрузки данных планера
     const fetchMealPlan = async () => {
@@ -182,84 +232,130 @@ const PlanerDetailPage: React.FC = () => {
     }
 
     return (
-        <div className="p-4">
-            {/* Заголовок с названием планера и кнопкой удаления планера */}
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold">{mealPlan.name}</h1>
-                <button onClick={() => setConfirmPlanOpen(true)} className="text-red-600 hover:text-red-800" title="Удалить планер">
-                    <FaTrash />
-                </button>
-            </div>
+        <div className="bg-[#F9F9F9] min-h-screen px-6 py-8">
+            <div className="w-full max-w-screen-2xl mx-auto px-4">
+            {/* Заголовок и кнопки */}
+                <div className="flex items-center gap-1 mb-6">
+                    {editing ? (
+                        <>
+                            <input
+                                value={newName}
+                                onChange={(e) => setNewName(e.target.value)}
+                                className="border border-gray-300 px-4 py-2 rounded-lg text-lg shadow-sm w-full max-w-sm"
+                            />
+                            <button
+                                onClick={handleSaveClick}
+                                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition shadow"
+                            >
+                                Сохранить
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <h1 className="text-3xl font-bold text-gray-800">{mealPlan.name}</h1>
+                            <button
+                                onClick={handleEditClick}
+                                className="flex items-center gap-2 px-6 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg bg-white hover:bg-gray-100 transition shadow-sm"
+                            >
+                                <Edit3 size={22} />
+                            </button>
+                        </>
+                    )}
+                    <button
+                        onClick={() => setConfirmPlanOpen(true)}
+                        className="p-2 text-red-600 hover:bg-red-100 border border-gray-300 rounded-lg bg-white transition shadow-sm"
+                    >
+                        <Trash2 size={22} />
+                    </button>
+                </div>
 
-            <div className="mt-6">
-                <ShoppingListGenerator mealPlanId={numericPlanId} />
-            </div>
+                <div className="mb-6">
+                    <ShoppingListGenerator mealPlanId={numericPlanId} />
+                </div>
 
-            {/* Карточки дней */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                {dayNumbers.map(day => (
-                    <div key={day} className="bg-gray-200 p-4 rounded shadow relative">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="font-semibold">День {day}</span>
-                        </div>
-                        {/* Список блюд для дня */}
-                        <div className="space-y-2">
+                {/* День и блюда */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {dayNumbers.map(day => (
+                        <div key={day} className="bg-white rounded-xl shadow-md p-4 space-y-4">
+                            <div className="flex justify-between items-center">
+                                <h2 className="text-xl font-semibold text-gray-700">День {day}</h2>
+                                {dayNumbers.length > 1 && (
+                                    <button
+                                        onClick={() => handleDeleteDayClick(day)}
+                                        className="p-2 mr-3 text-gray-500 hover:text-red-600 hover:bg-red-100 rounded-lg transition"
+                                        title="Удалить день"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                )}
+                            </div>
+
+
                             {groupedRecipes[day] && groupedRecipes[day].length > 0 ? (
                                 groupedRecipes[day].map(dish => (
-                                    <div key={dish.id_meal_plan_recipe} className="flex items-center justify-between bg-white p-2 rounded shadow">
-                                        <span>{dish.Recipe?.name}</span>
-                                        <div className="flex items-center gap-2">
+                                        <div
+                                            key={dish.id_meal_plan_recipe}
+                                            className="flex justify-between items-center bg-gray-100 rounded-lg px-4 py-2 hover:bg-gray-200 transition"
+                                        >
+                                        <span className="gap-2 text-gray-950 font-medium break-words leading-snug flex-grow min-w-0">
+                                            {dish.Recipe?.name}
+                                        </span>
+                                            <div className="flex items-center ">
                                             <button
                                                 onClick={() => updateQuantity(day, dish.Recipe.recipe_id, dish.quantity - 1)}
-                                                className="bg-gray-300 w-6 h-6 rounded flex items-center justify-center hover:bg-gray-400"
-                                                title="Уменьшить количество"
+                                                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#F19953] hover:text-white text-gray-700 flex items-center justify-center transition"
+                                                title="Уменьшить"
                                             >
                                                 <FaMinus />
                                             </button>
-                                            <span>{dish.quantity}</span>
+                                            <span className="w-6 text-center font-medium">{dish.quantity}</span>
                                             <button
                                                 onClick={() => updateQuantity(day, dish.Recipe.recipe_id, dish.quantity + 1)}
-                                                className="bg-gray-300 w-6 h-6 rounded flex items-center justify-center hover:bg-gray-400"
-                                                title="Увеличить количество"
+                                                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#F19953] hover:text-white text-gray-700 flex items-center justify-center transition"
+                                                title="Увеличить"
                                             >
                                                 <FaPlus />
                                             </button>
-                                            <button
-                                                onClick={() => handleDishDeleteClick(day, dish.Recipe.recipe_id, dish.Recipe.name)}
-                                                className="bg-red-500 text-white w-6 h-6 rounded flex items-center justify-center hover:bg-red-600"
-                                                title="Удалить блюдо"
-                                            >
-                                                <FaTrash />
-                                            </button>
+                                                <button
+                                                    onClick={() => handleDishDeleteClick(day, dish.Recipe.recipe_id, dish.Recipe.name)}
+                                                    className="p-2 ml-3  text-gray-500 hover:bg-red-500 hover:text-white  rounded-lg transition"
+                                                    title="Удалить блюдо"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <p className="text-gray-500">Нет добавленных блюд</p>
+                                <p className="text-gray-500 text-sm">Нет добавленных блюд</p>
                             )}
+
+                            <button
+                                onClick={() => openAddDishModal(day)}
+                                className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-yellow-400 hover:bg-yellow-300 text-black font-semibold text-base shadow transition"
+                            >
+                                <Plus size={20} />
+
+                            </button>
+
+
+
                         </div>
-                        {/* Кнопка добавления блюда */}
-                        <button
-                            onClick={() => openAddDishModal(day)}
-                            className="mt-3 flex items-center gap-1 text-blue-600 hover:text-blue-800"
-                            title="Добавить блюдо"
-                        >
-                            <FaPlus />
-                            Добавить блюдо
-                        </button>
-                    </div>
-                ))}
+                    ))}
+                </div>
+
+
+
+                {/* Кнопка добавить день */}
+                <div className="mt-6">
+                    <button
+                        onClick={addDay}
+                        className="bg-[#F19953] hover:bg-[#f18953] text-white px-6 py-3 rounded-full shadow transition font-semibold"
+                    >
+                        Добавить день
+                    </button>
+                </div>
             </div>
-
-            {/* Кнопка добавления дня */}
-            <button
-                onClick={addDay}
-                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-            >
-                Добавить день
-            </button>
-
-
             {/* Модалка для добавления блюда */}
             {showAddDishModal && selectedDay !== null && (
                 <AddDishModal
@@ -283,6 +379,18 @@ const PlanerDetailPage: React.FC = () => {
                 onConfirm={confirmDeleteDish}
             />
 
+            {/* Окно подтвержденя удаления дня планера */}
+            <ConfirmModal
+                isOpen={confirmDayOpen}
+                title="Удаление дня"
+                message={`Вы действительно хотите удалить день ${dayToDelete}? Все блюда будут удалены.`}
+                onCancel={() => {
+                    setConfirmDayOpen(false);
+                    setDayToDelete(null);
+                }}
+                onConfirm={confirmDeleteDay}
+            />
+
             {/* Окно подтверждения удаления планера */}
             <ConfirmModal
                 isOpen={confirmPlanOpen}
@@ -292,6 +400,7 @@ const PlanerDetailPage: React.FC = () => {
                 onConfirm={confirmDeletePlan}
             />
         </div>
+
     );
 };
 
