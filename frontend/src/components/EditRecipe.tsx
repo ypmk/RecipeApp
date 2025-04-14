@@ -6,6 +6,7 @@ import { Trash2 } from 'lucide-react';
 
 interface RecipeIngredientInfo {
     quantity: number;
+    unit_id: number;
 }
 
 interface IngredientInput {
@@ -109,7 +110,7 @@ const EditRecipe: React.FC = () => {
                     ingredient_id: ing.ingredient_id,
                     name: ing.name,
                     quantity: ing.RecipesIngredients.quantity,
-                    unit_id: ing.IngredientUnit?.ing_unit_id || 1,
+                    unit_id: ing.RecipesIngredients.unit_id ?? '',
                 })) || [];
                 setIngredients(ingr);
                 setInitialIngredients(ingr);
