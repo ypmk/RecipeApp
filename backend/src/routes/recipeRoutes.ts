@@ -100,7 +100,7 @@ router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response
 
         const result = recipes.map(recipe => {
             const data = recipe.toJSON();
-            data.main_image = data.main_image ? `/${data.main_image}` : '/default_2.jpg';
+            data.main_image = data.main_image ? `/${data.main_image}` : '/default.jpg';
             return data;
         });
         res.json(result);
