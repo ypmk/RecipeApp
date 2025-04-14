@@ -73,8 +73,6 @@ const MealPlanList: React.FC = () => {
 
     return (
         <div className="p-4 max-w-md mx-auto">
-
-
             {loading ? (
                 <p>Загрузка планеров...</p>
             ) : (
@@ -83,20 +81,28 @@ const MealPlanList: React.FC = () => {
                         <div
                             key={plan.meal_plan_id}
                             onClick={() => handlePlanClick(plan.meal_plan_id)}
-                            className="flex items-center justify-between p-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition cursor-pointer"
+                            className="flex justify-between items-center bg-white shadow-md border border-orange-100 rounded-2xl p-4 hover:shadow-lg transition cursor-pointer"
                         >
                             <div className="flex items-center space-x-3">
-
-                                <span className="font-medium truncate max-w-[200px]">{plan.name}</span>
+                                <img
+                                    src="/default.jpg"
+                                    alt="План"
+                                    className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                                />
+                                <span className="font-semibold text-gray-800 text-base truncate max-w-[160px]">
+                                  {plan.name}
+                                </span>
                             </div>
                             <button
                                 onClick={(e) => handleDeleteClick(e, plan)}
                                 title="Удалить планер"
-                                className="text-gray-500 hover:text-red-600 transition"
+                                className="text-gray-400 hover:text-red-500 transition"
                             >
-                                <Trash2 size={18} />
+                                <Trash2 size={20} />
                             </button>
+
                         </div>
+
                     ))}
                 </div>
             )}

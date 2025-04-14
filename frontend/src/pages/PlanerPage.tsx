@@ -8,7 +8,7 @@ const PlanerPage: React.FC = () => {
     return (
         <div>
             <Header />
-            <div className="flex items-center gap-2 mt-10 justify-center">
+            <div className="flex items-center gap-6 mt-10 justify-center">
                 <h2 className="text-2xl font-bold">Ваши планеры</h2>
                 <MealPlanCreateButton />
             </div>
