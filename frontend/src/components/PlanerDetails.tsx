@@ -293,16 +293,19 @@ const PlanerDetailPage: React.FC = () => {
 
                             {groupedRecipes[day] && groupedRecipes[day].length > 0 ? (
                                 groupedRecipes[day].map(dish => (
-                                        <div
-                                            key={dish.id_meal_plan_recipe}
-                                            className="flex justify-between items-center bg-gray-100 rounded-lg px-4 py-2 hover:bg-gray-200 transition"
-                                        >
+                                    <div
+                                        key={dish.id_meal_plan_recipe}
+                                        onClick={() => navigate(`/recipes/${dish.Recipe.recipe_id}`)}
+                                        className="flex justify-between items-center bg-gray-100 rounded-lg px-4 py-2 hover:bg-gray-200 transition cursor-pointer"
+                                    >
                                         <span className="gap-2 text-gray-950 font-medium break-words leading-snug flex-grow min-w-0">
                                             {dish.Recipe?.name}
                                         </span>
-                                            <div className="flex items-center ">
+                                        <div className="flex items-center ">
                                             <button
-                                                onClick={() => updateQuantity(day, dish.Recipe.recipe_id, dish.quantity - 1)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    updateQuantity(day, dish.Recipe.recipe_id, dish.quantity - 1)}}
                                                 className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#F19953] hover:text-white text-gray-700 flex items-center justify-center transition"
                                                 title="Уменьшить"
                                             >
@@ -310,14 +313,18 @@ const PlanerDetailPage: React.FC = () => {
                                             </button>
                                             <span className="w-6 text-center font-medium">{dish.quantity}</span>
                                             <button
-                                                onClick={() => updateQuantity(day, dish.Recipe.recipe_id, dish.quantity + 1)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    updateQuantity(day, dish.Recipe.recipe_id, dish.quantity + 1)}}
                                                 className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#F19953] hover:text-white text-gray-700 flex items-center justify-center transition"
                                                 title="Увеличить"
                                             >
                                                 <FaPlus />
                                             </button>
                                                 <button
-                                                    onClick={() => handleDishDeleteClick(day, dish.Recipe.recipe_id, dish.Recipe.name)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDishDeleteClick(day, dish.Recipe.recipe_id, dish.Recipe.name)}}
                                                     className="p-2 ml-3  text-gray-500 hover:bg-red-500 hover:text-white  rounded-lg transition"
                                                     title="Удалить блюдо"
                                                 >
