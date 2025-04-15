@@ -1,10 +1,12 @@
 // src/components/Header.tsx
-import  { useContext } from 'react';
+import {useContext, useState} from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
 const Header = () => {
     const { user, setUser } = useContext(AuthContext);
+    const [showLogout, setShowLogout] = useState(false);
+
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -42,10 +44,11 @@ const Header = () => {
                 </nav>
                 <div className="flex items-center gap-4 text-sm font-medium">
                     {user ? (
-                        <>
-                            <div
-
-                                className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full"
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowLogout(prev => !prev)}
+                                onBlur={() => setTimeout(() => setShowLogout(false), 150)}
+                                className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full focus:outline-none"
                             >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
@@ -61,14 +64,16 @@ const Header = () => {
                                         d="M5.121 17.804A10.97 10.97 0 0112 15c2.43 0 4.663.777 6.435 2.09M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                                     />
                                 </svg>
-                            </div>
-                            <button
-                                onClick={handleLogout}
-                                className="px-3 py-1 rounded bg-red-500 text-white text-sm hover:bg-red-600 transition"
-                            >
-                                Выйти
                             </button>
-                        </>
+                            {showLogout && (
+                                <button
+                                    onClick={handleLogout}
+                                    className="absolute right-0 mt-2 px-3 py-1 rounded bg-red-500 text-white text-sm hover:bg-red-600 transition z-50"
+                                >
+                                    Выйти
+                                </button>
+                            )}
+                        </div>
                     ) : (
                         <>
                             <Link to="/login">
