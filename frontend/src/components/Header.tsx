@@ -1,17 +1,10 @@
-// src/components/Header.tsx
 import {useContext, useState} from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
 const Header = () => {
     const { user, setUser } = useContext(AuthContext);
-    const [showLogout, setShowLogout] = useState(false);
 
-
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        setUser(null);
-    };
 
     const navItems = [
         { title: 'Главная', to: '/main' },
@@ -44,10 +37,8 @@ const Header = () => {
                 </nav>
                 <div className="flex items-center gap-4 text-sm font-medium">
                     {user ? (
-                        <div className="relative">
+                        <Link to="/user">
                             <button
-                                onClick={() => setShowLogout(prev => !prev)}
-                                onBlur={() => setTimeout(() => setShowLogout(false), 150)}
                                 className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full focus:outline-none"
                             >
                                 <svg
@@ -65,15 +56,7 @@ const Header = () => {
                                     />
                                 </svg>
                             </button>
-                            {showLogout && (
-                                <button
-                                    onClick={handleLogout}
-                                    className="absolute right-0 mt-2 px-3 py-1 rounded bg-red-500 text-white text-sm hover:bg-red-600 transition z-50"
-                                >
-                                    Выйти
-                                </button>
-                            )}
-                        </div>
+                        </Link>
                     ) : (
                         <>
                             <Link to="/login">
