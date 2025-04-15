@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from "react-router-dom";
+import { Edit3, Trash2 } from "lucide-react";
+import ConfirmModal from "./ConfirmModal.tsx";
 
 interface ShoppingItem {
     shopping_item_id: number;
@@ -24,76 +27,123 @@ interface ShoppingListViewProps {
 const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) => {
     const [shoppingList, setShoppingList] = useState<ShoppingList | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
+    const navigate = useNavigate();
+
+    // Состояния для редактирования
+    const [editing, setEditing] = useState<boolean>(false);
+    const [newName, setNewName] = useState('');
+    // Состояние для модального окна подтверждения удаления
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState<boolean>(false);
 
     useEffect(() => {
-        async function fetchShoppingList() {
-            try {
-                const token = localStorage.getItem('token');
-                const response = await axios.get(`/api/shopping-lists/${shoppingListId}`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                setShoppingList(response.data);
-            } catch (err: any) {
-                console.error(err);
-                setError('Не удалось загрузить список покупок.');
-            } finally {
-                setLoading(false);
-            }
-        }
-        fetchShoppingList();
+        axios.get(`/api/shopping-lists/${shoppingListId}`)
+            .then((res) => {
+                setShoppingList(res.data);
+            })
+            .catch((err) => console.error('Ошибка загрузки списка покупок', err))
+            .finally(() => setLoading(false));
     }, [shoppingListId]);
 
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center h-64 text-lg text-gray-500">
-                Загрузка списка покупок...
-            </div>
-        );
-    }
+    // Функция запуска режима редактирования
+    const handleEditClick = () => {
+        setNewName(shoppingList?.name || '');
+        setEditing(true);
+    };
 
-    if (error) {
-        return (
-            <div className="text-center text-red-500 font-medium mt-8">
-                {error}
-            </div>
-        );
-    }
+    // Функция сохранения нового названия списка
+    const handleSaveClick = async () => {
+        try {
+            const res = await axios.put(`/api/shopping-lists/${shoppingListId}`, { name: newName });
+            setShoppingList(res.data);
+            setEditing(false);
+        } catch (err) {
+            console.error('Ошибка при обновлении названия списка', err);
+            alert('Ошибка при обновлении названия списка');
+        }
+    };
 
-    if (!shoppingList) {
-        return (
-            <div className="text-center text-gray-500 mt-8">
-                Список покупок не найден.
-            </div>
-        );
-    }
+    // Функция удаления списка покупок
+    const handleDelete = async () => {
+        try {
+            await axios.delete(`/api/shopping-lists/${shoppingListId}`);
+            // После успешного удаления можно перенаправить пользователя на страницу со списками
+            navigate('/lists');
+        } catch (err) {
+            console.error('Ошибка при удалении списка покупок', err);
+            alert('Ошибка при удалении списка покупок');
+        }
+    };
+
+    if (loading) return <div className="text-center text-gray-500">Загрузка...</div>;
+    if (!shoppingList) return <div className="text-center text-red-500">Список не найден</div>;
 
     return (
-        <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow p-6 mt-6">
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">
-                {shoppingList.name}
-            </h1>
+        <div className="max-w-2xl mx-auto mt-6">
+            <div className="flex items-center justify-between mb-4">
+                {editing ? (
+                    <div className="flex gap-2 w-full">
+                        <input
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            className="border border-gray-300 px-4 py-2 rounded-lg text-lg shadow-sm w-full max-w-sm"
+                        />
+                        <button
+                            onClick={handleSaveClick}
+                            className="bg-[#F19953] hover:bg-[#f18953] text-white px-4 py-2 rounded-lg shadow"
+                        >
+                            Сохранить
+                        </button>
+                    </div>
+                ) : (
+                    <>
+                        <h2 className="text-2xl font-bold text-gray-800">{shoppingList.name}</h2>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={handleEditClick}
+                                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg bg-white hover:bg-gray-100 shadow-sm"
+                            >
+                                <Edit3 size={20} />
+                            </button>
+                            <button
+                                onClick={() => setConfirmDeleteOpen(true)}
+                                className="p-2 text-red-600 hover:bg-red-100 border border-gray-300 rounded-lg bg-white shadow-sm"
+                            >
+                                <Trash2 size={20} />
+                            </button>
+                        </div>
+                    </>
+                )}
+            </div>
 
-            {shoppingList.ShoppingItems.length === 0 ? (
-                <div className="text-center text-gray-400">Пока нет ингредиентов</div>
-            ) : (
-                <table className="w-full border-t border-gray-200">
-                    <thead className="bg-gray-50">
+            <div className="bg-white shadow-md rounded-xl overflow-hidden">
+                <table className="min-w-full table-auto">
+                    <thead className="bg-gray-100">
                     <tr>
-                        <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">Ингредиент</th>
-                        <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">Количество</th>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Ингредиент</th>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Количество</th>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Ед. изм.</th>
                     </tr>
                     </thead>
-                    <tbody>
-                    {shoppingList.ShoppingItems.map(item => (
-                        <tr key={item.shopping_item_id} className="border-t">
-                            <td className="px-4 py-3 text-gray-700">{item.Ingredient.name}</td>
-                            <td className="px-4 py-3 text-gray-700">{item.quantity} {item.unit}</td>
+                    <tbody className="divide-y divide-gray-200">
+                    {shoppingList.ShoppingItems.map((item) => (
+                        <tr key={item.shopping_item_id} className="hover:bg-gray-50 transition">
+                            <td className="px-6 py-4 text-sm text-gray-800">{item.Ingredient.name}</td>
+                            <td className="px-6 py-4 text-sm text-gray-800">{item.quantity}</td>
+                            <td className="px-6 py-4 text-sm text-gray-800">{item.unit}</td>
                         </tr>
                     ))}
                     </tbody>
                 </table>
-            )}
+            </div>
+
+            {/* Модальное окно подтверждения удаления */}
+            <ConfirmModal
+                isOpen={confirmDeleteOpen}
+                title="Удаление списка"
+                message={`Вы действительно хотите удалить список "${shoppingList?.name}"?`}
+                onCancel={() => setConfirmDeleteOpen(false)}
+                onConfirm={handleDelete}
+            />
         </div>
     );
 };

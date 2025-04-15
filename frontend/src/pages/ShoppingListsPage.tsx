@@ -11,7 +11,7 @@ const ShoppingListsPage: React.FC = () => {
             <div className="flex items-center gap-6 mt-10 justify-center">
                 <h2 className="text-2xl font-bold">Ваши списки покупок</h2>
             </div>
-            <main className="max-w-4xl mx-auto px-8 mt-12">
+            <main className="max-w-4xl mx-auto px-8 mt-5">
                 <ShoppingListsList />
             </main>
             <ShoppingListCreateButton />

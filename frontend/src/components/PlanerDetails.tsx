@@ -245,7 +245,7 @@ const PlanerDetailPage: React.FC = () => {
                             />
                             <button
                                 onClick={handleSaveClick}
-                                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition shadow"
+                                className="bg-[#F19953] hover:bg-[#f18953] text-white px-4 py-2 rounded-lg  transition shadow"
                             >
                                 Сохранить
                             </button>

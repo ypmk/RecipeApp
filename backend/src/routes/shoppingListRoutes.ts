@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import {Router, Request, Response, RequestHandler} from 'express';
 import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth';
 import MealPlans from '../models/MealPlans';
 import MealPlanRecipes from '../models/MealPlanRecipes';
@@ -230,6 +230,69 @@ router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Ошибка при получении списков покупок' });
+    }
+});
+
+
+router.put('/:shoppingListId', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        const { shoppingListId } = req.params;
+        const { name } = req.body;
+        if (!userId) {
+            res.status(401).json({ message: 'Unauthorized' });
+            return;
+        }
+        const shoppingList = await ShoppingLists.findOne({
+            where: { shopping_list_id: shoppingListId, user_id: userId }
+        });
+        if (!shoppingList) {
+            res.status(404).json({ message: 'Список покупок не найден' });
+            return;
+        }
+        shoppingList.name = name;
+        await shoppingList.save();
+
+        const updatedShoppingList = await ShoppingLists.findOne({
+            where: { shopping_list_id: shoppingListId, user_id: userId },
+            include: [{
+                model: ShoppingItems,
+                include: [{
+                    model: Ingredient,
+                    attributes: ['name']
+                }]
+            }]
+        });
+
+        res.json(updatedShoppingList);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+
+
+router.delete('/:shoppingListId', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        const { shoppingListId } = req.params;
+        if (!userId) {
+            res.status(401).json({ message: 'Unauthorized' });
+            return;
+        }
+        const shoppingList = await ShoppingLists.findOne({
+            where: { shopping_list_id: shoppingListId, user_id: userId }
+        });
+        if (!shoppingList) {
+            res.status(404).json({ message: 'Список покупок не найден' });
+            return;
+        }
+        await shoppingList.destroy();
+        res.json({ message: 'Список покупок удалён' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
     }
 });
 
