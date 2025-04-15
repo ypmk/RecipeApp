@@ -225,7 +225,9 @@ router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response
             include: [{
                 model: ShoppingItems,
             }],
+            order: [['createdAt', 'DESC']],
         });
+
         res.json(shoppingLists);
     } catch (error) {
         console.error(error);
