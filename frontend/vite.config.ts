@@ -10,9 +10,10 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3000', // бэкенд
+        target: 'http://localhost:3000',
         changeOrigin: true,
-        // rewrite: (path) => path.replace(/^\/api/, '') // при необходимости
+        secure: false,
+        cookieDomainRewrite: 'localhost',
       },
       '/uploads': {
         target: 'http://localhost:3000',

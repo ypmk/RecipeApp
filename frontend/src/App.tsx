@@ -16,6 +16,7 @@ import PlanerPage from "./pages/PlanerPage.tsx";
 import PlanerDetailPage from "./pages/PlanerDetailPage.tsx";
 import ShoppingListsPage from "./pages/ShoppingListsPage.tsx";
 import ListDetailsPage from "./pages/ListDetailsPage.tsx";
+import {RequireAuth} from "./context/RequireAuth.tsx";
 
 const App: React.FC = () => {
     return (
@@ -31,27 +32,89 @@ const App: React.FC = () => {
 
                 <Routes>
                     <Route path="/" element={<Login />} />
-                    <Route path="/main" element={<Home />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
 
-                    <Route path="/recipes" element={<RecipesList searchQuery={''} filters={{
-                        timeCooking: '',
-                        selectedCollections: []
-                    }} />} />
-                    <Route path="/recipes/:id" element={<RecipeDetailsPage />} />
-                    <Route path="/createRecipe" element={<CreateRecipePage />} />
-                    <Route path="/recipes/:id/edit" element={<EditRecipePage />} />
+                    <Route path="/main" element={
+                        <RequireAuth>
+                            <Home />
+                        </RequireAuth>
+                        }
+                    />
 
-                    <Route path="/collections" element={<CollectionsListPage />} />
-                    <Route path="/collections/:collectionId" element={<CollectionDetailsPage />} />
+                    <Route path="/recipes" element={
+                        <RequireAuth>
+                            <RecipesList searchQuery={''} filters={{
+                                timeCooking: '',
+                                selectedCollections: []
+                                }}
+                            />
+                        </RequireAuth>
+                        }
+                    />
 
-                    <Route path="/planer/:mealPlanId" element={<PlanerDetailPage />} />
-                    <Route path="/planer" element={<PlanerPage />} />
+                    <Route path="/recipes/:id" element={
+                        <RequireAuth>
+                            <RecipeDetailsPage />
+                        </RequireAuth>
+                        }
+                    />
 
-                    <Route path="/lists" element={<ShoppingListsPage />} />
-                    <Route path="/shopping-lists/:shoppingListId" element={<ListDetailsPage />} />
+                    <Route path="/createRecipe" element={
+                        <RequireAuth>
+                            <CreateRecipePage />
+                        </RequireAuth>
+                        }
+                    />
 
+                    <Route path="/recipes/:id/edit" element={
+                        <RequireAuth>
+                            <EditRecipePage />
+                        </RequireAuth>
+                        }
+                    />
+
+                    <Route path="/collections" element={
+                        <RequireAuth>
+                            <CollectionsListPage />
+                        </RequireAuth>
+                        }
+                    />
+
+                    <Route path="/collections/:collectionId" element={
+                        <RequireAuth>
+                            <CollectionDetailsPage />
+                        </RequireAuth>
+                        }
+                    />
+
+                    <Route path="/planer/:mealPlanId" element={
+                        <RequireAuth>
+                            <PlanerDetailPage />
+                        </RequireAuth>
+                        }
+                    />
+
+                    <Route path="/planer" element={
+                        <RequireAuth>
+                            <PlanerPage />
+                        </RequireAuth>
+                        }
+                    />
+
+                    <Route path="/lists" element={
+                        <RequireAuth>
+                            <ShoppingListsPage />
+                        </RequireAuth>
+                        }
+                    />
+
+                    <Route path="/shopping-lists/:shoppingListId" element={
+                        <RequireAuth>
+                            <ListDetailsPage />
+                        </RequireAuth>
+                        }
+                    />
 
                 </Routes>
             </AuthProvider>

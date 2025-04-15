@@ -18,6 +18,7 @@ import CookingTime from "./models/CookingTime";
 import cookingTimeRoutes from "./routes/cookingTimeRoutes";
 import mealPlanRoutes from "./routes/mealPlanRoutes";
 import shoppingListRoutes from "./routes/shoppingListRoutes";
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
@@ -26,8 +27,10 @@ const app = express();
 app.use(json());
 app.use(express.json());
 app.use(cors({
-    origin: 'http://localhost:5173'
+    origin: 'http://localhost:5173',
+    credentials: true
 }));
+app.use(cookieParser());
 
 // Маршруты авторизации (регистрация/логин)
 app.use('/api', authRoutes);
