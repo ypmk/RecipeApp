@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
-import { Edit3, Trash2, Circle, CheckCircle } from "lucide-react"; // импортируем иконки для режима "в магазине"
+import {Edit3, Trash2, Circle, CheckCircle, ShoppingCart} from "lucide-react"; // импортируем иконки для режима "в магазине"
 import ConfirmModal from "./ConfirmModal.tsx";
 
 interface ShoppingItem {
@@ -128,32 +128,44 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                     <>
                         <h2 className="text-2xl font-bold text-gray-800">{shoppingList.name}</h2>
                         <div className="flex items-center gap-2">
-                            <button
-                                onClick={handleEditClick}
-                                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg bg-white hover:bg-gray-100 shadow-sm"
-                            >
-                                <Edit3 size={20} />
-                            </button>
+                            {/* Кнопка удаления */}
                             <button
                                 onClick={() => setConfirmDeleteOpen(true)}
                                 className="p-2 text-red-600 hover:bg-red-100 border border-gray-300 rounded-lg bg-white shadow-sm"
+                                title="Удалить"
                             >
                                 <Trash2 size={20} />
                             </button>
+
+
+                            {/* Кнопка редактирования */}
+                            <button
+                                onClick={handleEditClick}
+                                className="flex items-center gap-2 px-6 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg bg-white hover:bg-gray-100 shadow-sm"
+                                title="Редактировать"
+                            >
+                                <Edit3 size={20} />
+                            </button>
+
+                            {/* Кнопка "в магазине" */}
+                            <button
+                                onClick={() => setInStoreMode(prev => !prev)}
+                                className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-lg bg-white shadow-sm hover:bg-gray-100 ${
+                                    inStoreMode ? 'text-green-600 border-green-400' : 'text-gray-700 border-gray-300'
+                                }`}
+                                title="Режим 'в магазине'"
+                            >
+                                <ShoppingCart size={20} />
+                            </button>
+
+
                         </div>
+
                     </>
                 )}
             </div>
 
-            {/* Кнопка переключения режима "в магазине" */}
-            <div className="mb-4 flex justify-end">
-                <button
-                    onClick={() => setInStoreMode(prev => !prev)}
-                    className="px-4 py-2 border rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition"
-                >
-                    {inStoreMode ? "Выключить режим 'в магазине'" : "Режим 'в магазине'"}
-                </button>
-            </div>
+
 
             {/* Таблица списка покупок */}
             <div className="bg-white shadow-md rounded-xl oыverflow-hidden">
