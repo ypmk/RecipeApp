@@ -18,6 +18,8 @@ const RecipeCollectionsSelector: React.FC<Props> = ({ recipeId, onClose }) => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [newCollectionName, setNewCollectionName] = useState<string>('');
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
 
     // Запрос списка коллекций с флагом, в каких уже есть рецепт
     const fetchCollections = async () => {
@@ -68,41 +70,6 @@ const RecipeCollectionsSelector: React.FC<Props> = ({ recipeId, onClose }) => {
         }
     };
 
-    // Создание новой коллекции и добавление в неё рецепта
-    const handleCreateCollection = async () => {
-        if (!newCollectionName.trim()) {
-            alert('Введите название коллекции');
-            return;
-        }
-        try {
-            // Создаем новую коллекцию (эндпоинт: POST /api/collections)
-            const createRes = await axios.post(
-                `/api/collections`,
-                { name: newCollectionName },
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`,
-                    },
-                }
-            );
-            const newCollectionId = createRes.data.collection_id;
-            // Добавляем рецепт в созданную коллекцию
-            await axios.post(
-                `/api/collections/${recipeId}/collections/${newCollectionId}`,
-                {},
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`,
-                    },
-                }
-            );
-            setNewCollectionName('');
-            fetchCollections();
-        } catch (err) {
-            console.error(err);
-            alert('Ошибка при создании коллекции');
-        }
-    };
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
@@ -138,19 +105,57 @@ const RecipeCollectionsSelector: React.FC<Props> = ({ recipeId, onClose }) => {
                 )}
 
                 <div className="mt-4">
-                    <input
-                        type="text"
-                        value={newCollectionName}
-                        onChange={(e) => setNewCollectionName(e.target.value)}
-                        placeholder="Название новой коллекции"
-                        className="border px-2 py-1 mr-2 rounded w-full"
-                    />
                     <button
-                        onClick={handleCreateCollection}
-                        className="mt-2 w-full bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded transition"
+                        onClick={() => setIsCreateModalOpen(true)}
+                        className="w-full text-left mt-4 bg-[#F9B753] text-[#141C24]  hover:bg-[#F8A753] text-center font-semibold px-4 py-2 rounded-lg shadow"
                     >
-                        Создать коллекцию
+                        + Создать коллекцию
                     </button>
+                    {isCreateModalOpen && (
+                        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                            <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm">
+                                <h2 className="text-lg font-bold mb-3">Новая коллекция</h2>
+                                <input
+                                    type="text"
+                                    value={newCollectionName}
+                                    onChange={(e) => setNewCollectionName(e.target.value)}
+                                    placeholder="Введите название"
+                                    className="w-full border border-gray-300 rounded px-3 py-2 mb-4"
+                                />
+                                <div className="flex justify-end gap-2">
+                                    <button
+                                        onClick={() => setIsCreateModalOpen(false)}
+                                        className="px-4 py-2 border border-gray-300 rounded font-semibold text-gray-700"
+                                    >
+                                        Отмена
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            if (!newCollectionName.trim()) return;
+                                            const createResponse = await axios.post('/api/collections', { name: newCollectionName }, {
+                                                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                                            });
+                                            const newCollection = createResponse.data;
+
+                                            await axios.post(
+                                                `/api/collections/${recipeId}/collections/${newCollection.collection_id}`,
+                                                {},
+                                                { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+                                            );
+
+                                            setNewCollectionName('');
+                                            setIsCreateModalOpen(false);
+                                            fetchCollections();
+                                        }}
+                                        className="px-4 py-2 bg-[#F9B753] text-[#141C24]  hover:bg-[#F8A753] font-semibold rounded"
+                                    >
+                                        Создать
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                 </div>
             </div>
         </div>
