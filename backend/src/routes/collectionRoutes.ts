@@ -144,29 +144,36 @@ router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res) => {
         });
 
         // Для каждой коллекции находим последнее изображение рецепта
-        const collectionsWithImages = await Promise.all(
+        const collectionsWithExtraData = await Promise.all(
             collections.map(async (collection) => {
-                const lastRecipe = await CollectionsRecipes.findOne({
+                const recipeLinks = await CollectionsRecipes.findAll({
                     where: { collection_id: collection.collection_id },
-                    order: [['createdAt', 'DESC']],
                     include: [{
                         model: Recipe,
                         as: 'recipe',
                         attributes: ['main_image'],
+                        required: true
                     }],
-                }) as CollectionsRecipes & { recipe?: { main_image: string } };
+                    order: [['createdAt', 'DESC']],
+                }) as (CollectionsRecipes & { recipe?: { main_image: string | null } })[];
 
+                const lastRecipeWithImage = recipeLinks.find(link => link.recipe?.main_image);
 
+                const lastRecipeImage = lastRecipeWithImage?.recipe?.main_image
+                    ? `/${lastRecipeWithImage.recipe.main_image}`
+                    : '/default.jpg';
 
 
                 return {
                     ...collection.toJSON(),
-                    lastRecipeImage: lastRecipe?.recipe?.main_image ? `/${lastRecipe.recipe.main_image}` : '/default.jpg',
+                    lastRecipeImage,
+                    recipesCount: recipeLinks.length,
                 };
             })
         );
 
-        res.json(collectionsWithImages);
+
+        res.json(collectionsWithExtraData);
 
     } catch (error) {
         console.error(error);

@@ -40,7 +40,7 @@ const CollectionDetails: React.FC = () => {
     const confirmRemoveRecipe = async () => {
         if (!recipeToRemove) return;
         try {
-            await axios.delete(`/api/${recipeToRemove.recipe_id}/collections/${collectionId}`, {
+            await axios.delete(`/api/collections/${recipeToRemove.recipe_id}/collections/${collectionId}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
             });
             setConfirmOpen(false);
@@ -133,8 +133,9 @@ const CollectionDetails: React.FC = () => {
     }, [collectionId]);
 
     return (
-        <div className="px-40 py-6 max-w-7xl ">
-            <h1 className="text-2xl font-bold mb-4 flex items-center gap-2">
+        <div className="px-6 py-6 mx-auto">
+
+        <h1 className="text-2xl font-bold mb-4 flex items-center gap-2">
                 {editing ? (
                     <>
                         <input
@@ -179,11 +180,13 @@ const CollectionDetails: React.FC = () => {
                 <p>В этой коллекции пока нет рецептов.</p>
             )}
 
-            <div className="flex flex-wrap gap-4 justify-start">
+            <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-6">
+
+
             {recipes.map((recipe) => (
                 <div
                     key={recipe.recipe_id}
-                    className="group relative w-[200px] bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden"
+                    className="group relative w-full bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden"
                 >
                 <Link to={`/recipes/${recipe.recipe_id}`} className="block">
                             <img
