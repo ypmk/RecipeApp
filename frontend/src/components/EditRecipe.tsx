@@ -110,7 +110,7 @@ const EditRecipe: React.FC = () => {
                     ingredient_id: ing.ingredient_id,
                     name: ing.name,
                     quantity: ing.RecipesIngredients.quantity,
-                    unit_id: ing.RecipesIngredients.unit_id ?? '',
+                    unit_id: Number(ing.RecipesIngredients?.unit_id) || 1,
                 })) || [];
                 setIngredients(ingr);
                 setInitialIngredients(ingr);
@@ -140,7 +140,7 @@ const EditRecipe: React.FC = () => {
                 setCookingTimeId(prev => prev || (res.data.length > 0 ? String(res.data[0].id) : ''));
             })
             .catch((err) => console.error('Ошибка загрузки вариантов времени:', err));
-    }, [recipeId]); // можно зависеть только от recipeId, чтобы этот эффект не перезаписывал значение, когда рецепт уже загружен
+    }, [recipeId]);
 
     const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files?.[0]) {
@@ -215,7 +215,6 @@ const EditRecipe: React.FC = () => {
             const formData = new FormData();
             formData.append('name', name);
             formData.append('instructions', instructions);
-            // Передаем новое значение времени приготовления через cooking_time_id
             if (cookingTimeId) formData.append('cooking_time_id', cookingTimeId);
             if (numberOfServings) formData.append('number_of_servings', numberOfServings);
             if (mainImage) formData.append('main_image', mainImage);
@@ -231,8 +230,18 @@ const EditRecipe: React.FC = () => {
             }
             for (const ing of ingredients) {
                 if (!ing.name.trim()) continue;
+
                 if (ing.ingredient_id) {
-                    await axios.put(`/api/recipes/${recipeId}/ingredients/${ing.ingredient_id}`, ing, { headers });
+                    await axios.put(
+                        `/api/recipes/${recipeId}/ingredients/${ing.ingredient_id}`,
+                        {
+                            name: ing.name,
+                            quantity: ing.quantity,
+                            unit_id: ing.unit_id,
+                        },
+                        { headers }
+                    );
+
                 } else {
                     await axios.post(`/api/recipes/${recipeId}/ingredients`, ing, { headers });
                 }

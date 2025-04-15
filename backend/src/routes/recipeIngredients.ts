@@ -74,4 +74,53 @@ router.post('/', authenticateJWT, async (req: AuthenticatedRequest, res: Respons
     }
 });
 
+
+/**
+ * PUT /api/recipes/:recipeId/ingredients/:ingredientId
+ * Обновляет количество и единицу измерения существующего ингредиента в рецепте.
+ */
+router.put('/:ingredientId', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            res.status(401).json({ message: 'Unauthorized' });
+            return
+        }
+
+        const recipeId = parseInt(req.params.recipeId, 10);
+        const ingredientId = parseInt(req.params.ingredientId, 10);
+        const { quantity, unit_id } = req.body;
+
+        if (quantity == null || !unit_id) {
+            res.status(400).json({ message: 'Missing quantity or unit_id' });
+            return
+        }
+
+        const recipeIngredient = await RecipesIngredients.findOne({
+            where: { recipe_id: recipeId, ingredient_id: ingredientId },
+        });
+
+        if (!recipeIngredient) {
+            res.status(404).json({ message: 'Ingredient not found in recipe' });
+            return
+        }
+
+        recipeIngredient.quantity = quantity;
+        recipeIngredient.unit_id = unit_id;
+        await recipeIngredient.save();
+
+        res.status(200).json({
+            message: 'Ingredient updated successfully',
+            recipeIngredient,
+        });
+        return
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+        return
+    }
+});
+
+
+
 export default router;
