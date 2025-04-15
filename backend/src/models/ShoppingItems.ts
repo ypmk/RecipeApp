@@ -5,7 +5,7 @@ import {
     InferCreationAttributes,
     CreationOptional,
 } from 'sequelize';
-import  sequelize  from '../database';
+import sequelize from '../database';
 
 class ShoppingItems extends Model<
     InferAttributes<ShoppingItems>,
@@ -16,6 +16,7 @@ class ShoppingItems extends Model<
     declare ingredient_id: number;
     declare quantity: number;
     declare unit: string;
+    declare bought: boolean;
 
     declare createdAt: CreationOptional<Date>;
     declare updatedAt: CreationOptional<Date>;
@@ -44,6 +45,11 @@ ShoppingItems.init(
             type: DataTypes.STRING(10),
             allowNull: false,
             defaultValue: '',
+        },
+        bought: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false,
         },
         createdAt: DataTypes.DATE,
         updatedAt: DataTypes.DATE,

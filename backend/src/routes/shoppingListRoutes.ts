@@ -1,4 +1,4 @@
-import {Router, Request, Response, RequestHandler} from 'express';
+import {Router, Response} from 'express';
 import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth';
 import MealPlans from '../models/MealPlans';
 import MealPlanRecipes from '../models/MealPlanRecipes';
@@ -155,7 +155,7 @@ router.post('/:mealPlanId/shopping-list', authenticateJWT, async (req: Authentic
             name: `Список покупок для плана "${mealPlan.name}"`
         });
 
-        const itemsToCreate: Array<{ shopping_list_id: number, ingredient_id: number, quantity: number, unit: string }> = [];
+        const itemsToCreate: Array<{ shopping_list_id: number, ingredient_id: number, quantity: number, unit: string, bought:boolean }> = [];
         aggregated.forEach(agg => {
             const { quantity, baseUnit } = agg;
             const { quantity: finalQuantity, unit: finalUnit } = formatQuantity(quantity, baseUnit);
@@ -164,6 +164,7 @@ router.post('/:mealPlanId/shopping-list', authenticateJWT, async (req: Authentic
                 ingredient_id: agg.ingredient_id,
                 quantity: finalQuantity,
                 unit: finalUnit,
+                bought:false
             });
         });
 
@@ -236,6 +237,7 @@ router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response
 });
 
 
+// Изменение названия списка покупок
 router.put('/:shoppingListId', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
     try {
         const userId = req.user?.id;
@@ -274,7 +276,7 @@ router.put('/:shoppingListId', authenticateJWT, async (req: AuthenticatedRequest
 });
 
 
-
+// Удаление списка покупок
 router.delete('/:shoppingListId', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
     try {
         const userId = req.user?.id;
@@ -297,6 +299,47 @@ router.delete('/:shoppingListId', authenticateJWT, async (req: AuthenticatedRequ
         res.status(500).json({ message: 'Server error' });
     }
 });
+
+
+// Обновление состояния элемента списка покупок в режиме "в магазине"
+router.put('/:shoppingListId/items/:shoppingItemId', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        const { shoppingListId, shoppingItemId } = req.params;
+        const { bought } = req.body; // значение должно быть boolean
+
+        if (typeof bought !== 'boolean') {
+            res.status(400).json({ message: 'Неверное значение для поля bought' });
+            return;
+        }
+
+        // Проверим, принадлежит ли список данному пользователю
+        const shoppingList = await ShoppingLists.findOne({
+            where: { shopping_list_id: shoppingListId, user_id: userId }
+        });
+        if (!shoppingList) {
+            res.status(404).json({ message: 'Список покупок не найден' });
+            return;
+        }
+
+        // Находим элемент списка по его id и по shopping_list_id
+        const item = await ShoppingItems.findOne({
+            where: { shopping_item_id: shoppingItemId, shopping_list_id: shoppingListId }
+        });
+        if (!item) {
+            res.status(404).json({ message: 'Элемент списка не найден' });
+            return;
+        }
+
+        item.bought = bought;
+        await item.save();
+        res.json(item);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 
 
 export default router;
