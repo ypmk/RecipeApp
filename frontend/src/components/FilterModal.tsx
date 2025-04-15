@@ -150,7 +150,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                     {loadingCollections ? (
                         <p>Загрузка коллекций...</p>
                     ) : (
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-2 max-h-60 overflow-y-auto pr-2">
                             {collections.map((col) => (
                                 <label key={col.collection_id} className="flex items-center gap-3">
                                     <input
