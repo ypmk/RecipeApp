@@ -41,28 +41,16 @@ const UserDetails: React.FC = () => {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
                         'Content-Type': 'application/json',
-                        'Accept': 'application/pdf'           // <-- ЯВНО говорим, что ждём PDF
+                        'Accept': 'application/pdf'
                     },
                     responseType: 'arraybuffer',
-                    // <-- получаем сырые бинарные данные
-                        // <-- отключаем автомат. парсинг
+
                 }
             );
 
-            console.log('Тип данных:', Object.prototype.toString.call(response.data));
-            console.log('Конструктор:', response.data.constructor?.name);
-            console.log('Размер:', response.data.byteLength ?? response.data.length);
-            console.log('Первые 10 байт:', new Uint8Array(response.data).slice(0, 10));
 
-
-            // Вот тут логируем длину полученного бинарного ответа
-            console.log('Received data size (client):', response.data.byteLength);
-
-// Создание Blob
             const pdfBlob = new Blob([new Uint8Array(response.data)], { type: 'application/pdf' });
-            console.log('Размер PDF-файла (байт):', pdfBlob.size);
 
-// Скачивание
             const url = window.URL.createObjectURL(pdfBlob);
             const link = document.createElement('a');
             link.href = url;

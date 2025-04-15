@@ -15,10 +15,7 @@
 <% recipes.forEach(recipe => { %>
     <div class="recipe">
         <h2><%= recipe.name %></h2>
-        <p><strong>Описание:</strong> <%= recipe.instructions %></p>
-        <% if (recipe.cookingTime) { %>
-            <p><strong>Время готовки:</strong> <%= recipe.cookingTime.name %></p>
-        <% } %>
+
         <div class="ingredients">
             <h3>Ингредиенты:</h3>
             <% if (recipe.ingredients && recipe.ingredients.length > 0) { %>
@@ -33,6 +30,14 @@
                 <p>Нет ингредиентов.</p>
             <% } %>
         </div>
+
+        <% if (recipe.number_of_servings) { %>
+        <p><strong>Количество порций:</strong> <%= recipe.number_of_servings %></p>
+        <% } %>
+
+        <p><strong>Способ приготовления:</strong> <%= recipe.instructions %></p>
+
+
     </div>
 <% }) %>
 </body>
