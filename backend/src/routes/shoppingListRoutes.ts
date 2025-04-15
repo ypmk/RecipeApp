@@ -210,4 +210,28 @@ router.get('/:shoppingListId', authenticateJWT, async (req: AuthenticatedRequest
     }
 });
 
+
+
+// Получение всех списков покупок пользователя
+router.get('/', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            res.status(401).json({ message: 'Unauthorized' });
+            return;
+        }
+        const shoppingLists = await ShoppingLists.findAll({
+            where: { user_id: userId },
+            include: [{
+                model: ShoppingItems,
+            }],
+        });
+        res.json(shoppingLists);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Ошибка при получении списков покупок' });
+    }
+});
+
+
 export default router;

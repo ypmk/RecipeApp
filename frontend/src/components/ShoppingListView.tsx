@@ -36,7 +36,7 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                 setShoppingList(response.data);
             } catch (err: any) {
                 console.error(err);
-                setError('Ошибка загрузки списка покупок');
+                setError('Не удалось загрузить список покупок.');
             } finally {
                 setLoading(false);
             }
@@ -44,33 +44,56 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
         fetchShoppingList();
     }, [shoppingListId]);
 
-    if (loading) return <div>Загрузка списка покупок...</div>;
-    if (error) return <div>{error}</div>;
-    if (!shoppingList) return <div>Список покупок не найден</div>;
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-64 text-lg text-gray-500">
+                Загрузка списка покупок...
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="text-center text-red-500 font-medium mt-8">
+                {error}
+            </div>
+        );
+    }
+
+    if (!shoppingList) {
+        return (
+            <div className="text-center text-gray-500 mt-8">
+                Список покупок не найден.
+            </div>
+        );
+    }
 
     return (
-        <div className="p-4">
-            <h1 className="text-2xl font-bold mb-4">{shoppingList.name}</h1>
-            <table className="min-w-full divide-y divide-gray-200 border">
-                <thead className="bg-gray-100">
-                <tr>
-                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Ингредиент</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Количество</th>
-                </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                {shoppingList.ShoppingItems.map(item => (
-                    <tr key={item.shopping_item_id}>
-                        <td className="px-6 py-4 whitespace-nowrap">{item.Ingredient.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                            {item.quantity}  {item.unit}
-                        </td>
+        <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow p-6 mt-6">
+            <h1 className="text-2xl font-bold text-gray-800 mb-6">
+                {shoppingList.name}
+            </h1>
+
+            {shoppingList.ShoppingItems.length === 0 ? (
+                <div className="text-center text-gray-400">Пока нет ингредиентов</div>
+            ) : (
+                <table className="w-full border-t border-gray-200">
+                    <thead className="bg-gray-50">
+                    <tr>
+                        <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">Ингредиент</th>
+                        <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">Количество</th>
                     </tr>
-                ))}
-                </tbody>
-            </table>
-
-
+                    </thead>
+                    <tbody>
+                    {shoppingList.ShoppingItems.map(item => (
+                        <tr key={item.shopping_item_id} className="border-t">
+                            <td className="px-4 py-3 text-gray-700">{item.Ingredient.name}</td>
+                            <td className="px-4 py-3 text-gray-700">{item.quantity} {item.unit}</td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+            )}
         </div>
     );
 };

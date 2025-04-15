@@ -5,7 +5,6 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import './index.css';
 import CollectionsListPage from "./pages/CollectionsListPage.tsx";
-import ListsPage from "./pages/ListsPage.tsx";
 import RecipesList from "./components/RecipesList.tsx";
 import './api/axiosConfig'
 import RecipeDetailsPage from "./pages/RecipeDetailsPage.tsx";
@@ -15,6 +14,8 @@ import CreateRecipePage from "./pages/CreateRecipePage.tsx";
 import CollectionDetailsPage from "./pages/CollectionDetailsPage.tsx";
 import PlanerPage from "./pages/PlanerPage.tsx";
 import PlanerDetailPage from "./pages/PlanerDetailPage.tsx";
+import ShoppingListsPage from "./pages/ShoppingListsPage.tsx";
+import ListDetailsPage from "./pages/ListDetailsPage.tsx";
 
 const App: React.FC = () => {
     return (
@@ -34,8 +35,6 @@ const App: React.FC = () => {
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
 
-                    <Route path="/lists" element={<ListsPage />} />
-
                     <Route path="/recipes" element={<RecipesList searchQuery={''} filters={{
                         timeCooking: '',
                         selectedCollections: []
@@ -49,6 +48,10 @@ const App: React.FC = () => {
 
                     <Route path="/planer/:mealPlanId" element={<PlanerDetailPage />} />
                     <Route path="/planer" element={<PlanerPage />} />
+
+                    <Route path="/lists" element={<ShoppingListsPage />} />
+                    <Route path="/shopping-lists/:shoppingListId" element={<ListDetailsPage />} />
+
 
                 </Routes>
             </AuthProvider>
