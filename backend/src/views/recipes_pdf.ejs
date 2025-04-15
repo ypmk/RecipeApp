@@ -9,12 +9,25 @@
         .recipe h2 { border-bottom: 2px solid #333; padding-bottom: 5px; }
         .ingredients { margin-top: 10px; }
         .ingredient { margin-bottom: 5px; }
+        .toc { margin-bottom: 50px; }
     </style>
 </head>
 <body>
-<% recipes.forEach(recipe => { %>
+
+<h1>Мои рецепты</h1>
+
+<div class="toc">
+    <h2>Оглавление</h2>
+    <ol>
+        <% recipes.forEach((recipe, index) => { %>
+            <li><%= recipe.name %></li>
+        <% }) %>
+    </ol>
+</div>
+
+<% recipes.forEach((recipe, index) => { %>
     <div class="recipe">
-        <h2><%= recipe.name %></h2>
+        <h2><%= index + 1 %>. <%= recipe.name %></h2>
 
         <div class="ingredients">
             <h3>Ингредиенты:</h3>
@@ -32,13 +45,12 @@
         </div>
 
         <% if (recipe.number_of_servings) { %>
-        <p><strong>Количество порций:</strong> <%= recipe.number_of_servings %></p>
+            <p><strong>Количество порций:</strong> <%= recipe.number_of_servings %></p>
         <% } %>
 
         <p><strong>Способ приготовления:</strong> <%= recipe.instructions %></p>
-
-
     </div>
 <% }) %>
+
 </body>
 </html>
