@@ -1,4 +1,3 @@
-// recipeExport.ts
 import { Router, Request, Response } from 'express';
 import puppeteer from 'puppeteer';
 import path from 'path';
@@ -15,7 +14,6 @@ const router = Router();
 
 /**
  * Эндпоинт экспорта рецептов в PDF.
- * Принимает в теле запроса { recipeIds: number[] }
  */
 router.post('/export-pdf', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -25,12 +23,12 @@ router.post('/export-pdf', authenticateJWT, async (req: AuthenticatedRequest, re
             return;
         }
 
-        // Выбираем рецепты с ингредиентами и временем готовки (если используется)
+
         const recipes = await Recipe.findAll({
             where: { recipe_id: recipeIds },
             include: [
                 {
-                    model: Ingredient, // теперь корректно передаём модель
+                    model: Ingredient,
                     as: 'ingredients',
                     through: { attributes: ['quantity', 'unit_id'] },
                 },
@@ -65,7 +63,7 @@ router.post('/export-pdf', authenticateJWT, async (req: AuthenticatedRequest, re
             unitMap[unit.ing_unit_id] = unit.name;
         });
 
-        // «Пришиваем» наименование единицы измерения к каждому ингредиенту
+
         const recipesData = recipes.map(recipe => {
             const data: any = recipe.toJSON();
             if (data.ingredients) {
@@ -83,7 +81,7 @@ router.post('/export-pdf', authenticateJWT, async (req: AuthenticatedRequest, re
         // Рендерим шаблон EJS с полными данными рецептов
         const templatePath = path.join(__dirname, '..', 'views', 'recipes_pdf.ejs');
         const html = await ejs.renderFile(templatePath, { recipes: recipesData });
-        console.log('HTML from EJS (first 200 символов):', html.slice(0, 200));
+
 
         // Запускаем Puppeteer для создания PDF
         const browser = await puppeteer.launch({
@@ -94,7 +92,7 @@ router.post('/export-pdf', authenticateJWT, async (req: AuthenticatedRequest, re
         // Устанавливаем контент страницы
         await page.setContent(html, { waitUntil: 'networkidle0' });
 
-        // Заменяем page.waitForTimeout(500) на обычный таймер:
+
         await new Promise<void>(resolve => setTimeout(resolve, 500));
 
         const pdfBuffer = await page.pdf({
@@ -103,9 +101,6 @@ router.post('/export-pdf', authenticateJWT, async (req: AuthenticatedRequest, re
             margin: { top: '20px', bottom: '20px', left: '20px', right: '20px' },
         });
 
-
-        fs.writeFileSync('test_recipes.pdf', pdfBuffer);
-        console.log('Сохранили PDF локально, размер:', pdfBuffer.length, 'байт');
 
         await browser.close();
 
@@ -118,9 +113,6 @@ router.post('/export-pdf', authenticateJWT, async (req: AuthenticatedRequest, re
         });
 
 
-        console.log('Тип отправляемого объекта:', typeof pdfBuffer);
-        console.log('Это буфер?', Buffer.isBuffer(pdfBuffer));
-        console.log('Первые байты буфера:', pdfBuffer.slice(0, 10));
         res.send(Buffer.from(pdfBuffer));
         return
 
