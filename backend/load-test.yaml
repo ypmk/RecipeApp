@@ -1,0 +1,25 @@
+config:
+  target: "http://localhost:5173"
+  phases:
+    - duration: 60
+      arrivalRate: 40
+  processor: "./auth-token.js"
+
+scenarios:
+  - name: "Авторизация и запросы"
+    flow:
+      - post:
+          url: "/api/login"
+          json:
+            username: "1"
+            password: "1"
+          capture:
+            json: "$.token"
+            as: "authToken"
+
+      - get:
+          url: "/api/recipes"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+
+
