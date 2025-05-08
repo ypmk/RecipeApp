@@ -1,8 +1,7 @@
-// ShoppingListsPage.tsx
 import React from 'react';
 import Header from "../components/Header";
 import ShoppingListsList from "../components/ShoppingListsList";
-import ShoppingListCreateButton from "../components/ShoppingListCreateButton";
+//import ShoppingListCreateButton from "../components/ShoppingListCreateButton";
 
 const ShoppingListsPage: React.FC = () => {
     return (
@@ -14,7 +13,7 @@ const ShoppingListsPage: React.FC = () => {
             <main className="max-w-4xl mx-auto px-8 mt-5">
                 <ShoppingListsList />
             </main>
-            <ShoppingListCreateButton />
+            {/*<ShoppingListCreateButton />*/}
         </div>
     );
 };

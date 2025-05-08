@@ -1,4 +1,3 @@
-// models/IngredientUnits.ts
 import {
     Model,
     DataTypes,

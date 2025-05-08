@@ -17,6 +17,8 @@ class ShoppingItems extends Model<
     declare quantity: number;
     declare unit: string;
     declare bought: boolean;
+    declare in_stock_quantity: number;
+
 
     declare createdAt: CreationOptional<Date>;
     declare updatedAt: CreationOptional<Date>;
@@ -50,6 +52,11 @@ ShoppingItems.init(
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: false,
+        },
+        in_stock_quantity: {
+            type: DataTypes.FLOAT,
+            allowNull: false,
+            defaultValue: 0,
         },
         createdAt: DataTypes.DATE,
         updatedAt: DataTypes.DATE,

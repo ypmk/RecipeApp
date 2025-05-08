@@ -7,6 +7,9 @@ import Ingredient from '../models/Ingredient';
 import ShoppingLists from '../models/ShoppingLists';
 import ShoppingItems from '../models/ShoppingItems';
 import IngredientUnits from '../models/IngredientUnits';
+import {User} from "../models";
+import Friendship from "../models/Friendship";
+import {Op} from "sequelize";
 
 const router = Router();
 
@@ -155,7 +158,7 @@ router.post('/:mealPlanId/shopping-list', authenticateJWT, async (req: Authentic
             name: `Список покупок для плана "${mealPlan.name}"`
         });
 
-        const itemsToCreate: Array<{ shopping_list_id: number, ingredient_id: number, quantity: number, unit: string, bought:boolean }> = [];
+        const itemsToCreate: Array<{ shopping_list_id: number, ingredient_id: number, quantity: number, unit: string, bought:boolean, in_stock_quantity: number }> = [];
         aggregated.forEach(agg => {
             const { quantity, baseUnit } = agg;
             const { quantity: finalQuantity, unit: finalUnit } = formatQuantity(quantity, baseUnit);
@@ -164,7 +167,8 @@ router.post('/:mealPlanId/shopping-list', authenticateJWT, async (req: Authentic
                 ingredient_id: agg.ingredient_id,
                 quantity: finalQuantity,
                 unit: finalUnit,
-                bought:false
+                bought:false,
+                in_stock_quantity: 0
             });
         });
 
@@ -306,14 +310,23 @@ router.put('/:shoppingListId/items/:shoppingItemId', authenticateJWT, async (req
     try {
         const userId = req.user?.id;
         const { shoppingListId, shoppingItemId } = req.params;
-        const { bought } = req.body; // значение должно быть boolean
+        const { bought, in_stock_quantity } = req.body;
 
-        if (typeof bought !== 'boolean') {
+        if (bought === undefined && in_stock_quantity === undefined) {
+            res.status(400).json({ message: 'Не указано ни bought, ни in_stock_quantity' });
+            return;
+        }
+
+        if (bought !== undefined && typeof bought !== 'boolean') {
             res.status(400).json({ message: 'Неверное значение для поля bought' });
             return;
         }
 
-        // Проверим, принадлежит ли список данному пользователю
+        if (in_stock_quantity !== undefined && typeof in_stock_quantity !== 'number') {
+            res.status(400).json({ message: 'in_stock_quantity должен быть числом' });
+            return;
+        }
+
         const shoppingList = await ShoppingLists.findOne({
             where: { shopping_list_id: shoppingListId, user_id: userId }
         });
@@ -322,7 +335,6 @@ router.put('/:shoppingListId/items/:shoppingItemId', authenticateJWT, async (req
             return;
         }
 
-        // Находим элемент списка по его id и по shopping_list_id
         const item = await ShoppingItems.findOne({
             where: { shopping_item_id: shoppingItemId, shopping_list_id: shoppingListId }
         });
@@ -331,7 +343,9 @@ router.put('/:shoppingListId/items/:shoppingItemId', authenticateJWT, async (req
             return;
         }
 
-        item.bought = bought;
+        if (bought !== undefined) item.bought = bought;
+        if (in_stock_quantity !== undefined) item.in_stock_quantity = in_stock_quantity;
+
         await item.save();
         res.json(item);
     } catch (error) {
@@ -339,6 +353,90 @@ router.put('/:shoppingListId/items/:shoppingItemId', authenticateJWT, async (req
         res.status(500).json({ message: 'Server error' });
     }
 });
+
+
+
+// Передача (копирование) списка покупок другому пользователю
+router.post('/:shoppingListId/transfer', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const senderId = req.user?.id;
+        const { shoppingListId } = req.params;
+        const { targetUsername } = req.body; // теперь ожидается targetUsername вместо targetUserId
+
+        if (!senderId) {
+            res.status(401).json({ message: 'Unauthorized' });
+            return
+        }
+        if (!targetUsername) {
+            res.status(400).json({ message: 'Не указан targetUsername' });
+            return
+        }
+
+        // Найдем получателя по username
+        const targetUser = await User.findOne({ where: { username: targetUsername } });
+        if (!targetUser) {
+            res.status(404).json({ message: 'Пользователь с указанным именем не найден' });
+            return
+        }
+        if (targetUser.id === senderId) {
+           res.status(400).json({ message: 'Нельзя передать список самому себе' });
+            return
+        }
+
+        // Проверка дружбы (проверяем в обе стороны)
+        const friendship = await Friendship.findOne({
+            where: {
+                [Op.or]: [
+                    { userId: senderId, friendId: targetUser.id },
+                    { userId: targetUser.id, friendId: senderId }
+                ],
+                status: 'accepted'
+            }
+        });
+        if (!friendship) {
+            res.status(403).json({ message: 'Передача списка возможна только между друзьями' });
+            return
+        }
+
+        // Получаем исходный список покупок отправителя с товарами
+        const originalList = await ShoppingLists.findOne({
+            where: { shopping_list_id: shoppingListId, user_id: senderId },
+            include: [{ model: ShoppingItems }]
+        });
+
+        if (!originalList) {
+            res.status(404).json({ message: 'Список покупок не найден или не принадлежит отправителю' });
+            return
+        }
+
+        // Создаем новый список для получателя с измененным названием (например, с приставкой "Копия:")
+        const newList = await ShoppingLists.create({
+            user_id: targetUser.id,
+            name: `Копия: ${originalList.name}`
+        });
+
+        // Копируем все товары; при этом поле bought устанавливаем в false
+        const itemsToCreate = originalList.ShoppingItems ? originalList.ShoppingItems.map((item: any) => ({
+            shopping_list_id: newList.shopping_list_id,
+            ingredient_id: item.ingredient_id,
+            quantity: item.quantity,
+            unit: item.unit,
+            bought: false,
+            in_stock_quantity:0
+        })) : [];
+
+        await ShoppingItems.bulkCreate(itemsToCreate);
+
+        res.status(201).json({
+            message: 'Список покупок успешно передан',
+            shoppingList: newList
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 
 
 

@@ -6,6 +6,7 @@ import {
     CreationOptional,
 } from 'sequelize';
 import  sequelize  from '../database';
+import ShoppingItems from './ShoppingItems';
 
 class ShoppingLists extends Model<
     InferAttributes<ShoppingLists>,
@@ -14,6 +15,7 @@ class ShoppingLists extends Model<
     declare shopping_list_id: CreationOptional<number>;
     declare user_id: number;
     declare name: string;
+    declare ShoppingItems?: ShoppingItems[];
 
     declare createdAt: CreationOptional<Date>;
     declare updatedAt: CreationOptional<Date>;
