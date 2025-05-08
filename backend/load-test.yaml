@@ -4,6 +4,11 @@ config:
     - duration: 60
       arrivalRate: 40
   processor: "./auth-token.js"
+  payload:
+    path: "./users.csv"
+    fields:
+      - username
+      - password
 
 scenarios:
   - name: "Авторизация и запросы"
@@ -11,8 +16,8 @@ scenarios:
       - post:
           url: "/api/login"
           json:
-            username: "1"
-            password: "1"
+            username: "{{ username }}"
+            password: "{{ password }}"
           capture:
             json: "$.token"
             as: "authToken"
