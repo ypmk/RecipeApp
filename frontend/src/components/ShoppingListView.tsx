@@ -193,7 +193,7 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
             const response = await axios.post(`/api/shopping-lists/${shoppingListId}/user-products`, {
                 name: newProductName,
                 quantity: newProductQuantity,
-                unit: newProductUnit,
+                unit: newProductUnit || 'шт',
             });
 
             const addedProduct = response.data;
@@ -508,7 +508,7 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                                 <>
                                     <td className="px-6 py-4 text-sm break-all">{product.name}</td>
                                     <td className="px-6 py-4 text-sm text-center">{product.quantity}</td>
-                                    <td className="px-6 py-4 text-sm text-center">{product.unit}</td>
+                                    <td className="px-6 py-4 text-sm text-center">{product.unit || 'шт'}</td>
                                     <td className="px-6 py-4 text-center flex justify-center gap-5">
                                         <button
                                             onClick={() => startEditProduct(product)}
