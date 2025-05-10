@@ -54,13 +54,13 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
     const [editStockMode, setEditStockMode] = useState<boolean>(false);
     const [isStockChanged, setIsStockChanged] = useState<boolean>(false);
     const [newProductName, setNewProductName] = useState('');
-    const [newProductQuantity, setNewProductQuantity] = useState(1);
+    const [newProductQuantity, setNewProductQuantity] = useState<number | ''>(1);
     const [productNameError, setProductNameError] = useState('');
     const [productQuantityError, setProductQuantityError] = useState('');
     const [formSubmitted, setFormSubmitted] = useState(false);
     const [editingProductId, setEditingProductId] = useState<number | null>(null);
     const [editedProductName, setEditedProductName] = useState('');
-    const [editedProductQuantity, setEditedProductQuantity] = useState(1);
+    const [editedProductQuantity, setEditedProductQuantity] = useState<number | ''>(1);
     const [editedProductUnit, setEditedProductUnit] = useState('');
     const [confirmDeleteProductOpen, setConfirmDeleteProductOpen] = useState(false);
     const [productIdToDelete, setProductIdToDelete] = useState<number | null>(null);
@@ -238,10 +238,16 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                 ...prevList!,
                 UserProducts: prevList!.UserProducts.map((p) =>
                     p.id === editingProductId
-                        ? { ...p, name: editedProductName, quantity: editedProductQuantity, unit: editedProductUnit }
+                        ? {
+                            ...p,
+                            name: editedProductName,
+                            quantity: editedProductQuantity === '' ? 0 : editedProductQuantity,
+                            unit: editedProductUnit,
+                        }
                         : p
                 ),
             }));
+
 
             setEditingProductId(null);
         } catch (error) {
@@ -472,8 +478,19 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                                     <td className="px-6 py-2 text-center">
                                         <input
                                             type="number"
-                                            value={editedProductQuantity}
-                                            onChange={(e) => setEditedProductQuantity(Number(e.target.value))}
+                                            value={editedProductQuantity === 0 ? '' : editedProductQuantity}
+                                            step="1"
+                                            min={0}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                const parsed = value === '' ? '' : parseFloat(value);
+                                                setEditedProductQuantity(parsed);
+                                            }}
+                                            onBlur={() => {
+                                                if (editedProductQuantity === '' || Number(editedProductQuantity) <= 0) {
+                                                    setEditedProductQuantity(1);
+                                                }
+                                            }}
                                             className="border px-2 py-1 rounded w-20 text-center"
                                         />
                                     </td>
@@ -580,8 +597,19 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                             <input
                                 type="number"
                                 placeholder="Количество"
-                                value={newProductQuantity}
-                                onChange={(e) => setNewProductQuantity(Number(e.target.value))}
+                                value={newProductQuantity === 0 ? '' : newProductQuantity}
+                                step="1"
+                                min={0}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    const parsed = value === '' ? '' : parseFloat(value);
+                                    setNewProductQuantity(parsed);
+                                }}
+                                onBlur={() => {
+                                    if (editedProductQuantity === '' || Number(editedProductQuantity) <= 0) {
+                                        setEditedProductQuantity(1);
+                                    }
+                                }}
                                 className={`border px-3 py-2 rounded w-full ${
                                     formSubmitted && productQuantityError ? 'border-red-500' : 'border-gray-300'
                                 }`}
