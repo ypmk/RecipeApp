@@ -292,6 +292,15 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                 onCancel={() => setConfirmDeleteOpen(false)}
                 onConfirm={handleDelete}
             />
+            <ConfirmModal
+                isOpen={confirmDeleteProductOpen}
+                title="Удаление продукта"
+                message={`Вы действительно хотите удалить продукт "${shoppingList?.UserProducts?.find(p => p.id === productIdToDelete)?.name}"?`}
+                onCancel={() => setConfirmDeleteProductOpen(false)}
+                onConfirm={handleConfirmDeleteUserProduct}
+            />
+
+
         </div>
     );
 };
