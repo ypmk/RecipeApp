@@ -190,6 +190,7 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
             setProductNameError('');
             setProductQuantityError('');
             setFormSubmitted(false);
+            setShowAddProductRow(false);
         } catch (error) {
             console.error('Ошибка добавления продукта:', error);
         }
@@ -582,6 +583,54 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                 onCancel={() => setConfirmDeleteProductOpen(false)}
                 onConfirm={handleConfirmDeleteUserProduct}
             />
+            {showAddProductRow && (
+                <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
+                        <h3 className="text-lg font-semibold mb-4 text-gray-800">Добавить продукт</h3>
+                        <div className="space-y-4">
+                            <input
+                                type="text"
+                                placeholder="Название"
+                                value={newProductName}
+                                onChange={(e) => setNewProductName(e.target.value)}
+                                className={`border px-3 py-2 rounded w-full ${
+                                    formSubmitted && productNameError ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                            />
+                            <input
+                                type="number"
+                                placeholder="Количество"
+                                value={newProductQuantity}
+                                onChange={(e) => setNewProductQuantity(Number(e.target.value))}
+                                className={`border px-3 py-2 rounded w-full ${
+                                    formSubmitted && productQuantityError ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                            />
+                            <input
+                                type="text"
+                                placeholder="Ед. изм."
+                                value={newProductUnit}
+                                onChange={(e) => setNewProductUnit(e.target.value)}
+                                className="border px-3 py-2 rounded w-full"
+                            />
+                            <div className="flex justify-end gap-2">
+                                <button
+                                    onClick={() => setShowAddProductRow(false)}
+                                    className="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 rounded"
+                                >
+                                    Отмена
+                                </button>
+                                <button
+                                    onClick={handleAddProduct}
+                                    className="px-4 py-2 text-sm bg-[#f18963] hover:bg-[#f17963] text-white rounded"
+                                >
+                                    Добавить
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
 
         </div>
