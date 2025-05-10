@@ -4,8 +4,8 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
 export const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
-    const { user, setUser } = useContext(AuthContext);
     const location = useLocation();
+    const { user, setUser, isLoading } = useContext(AuthContext);
 
     // Проверка срока действия токена прямо здесь
     const token = localStorage.getItem('token');
@@ -24,6 +24,10 @@ export const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) =
             setUser(null);
             return <Navigate to="/login" state={{ from: location }} replace />;
         }
+    }
+
+    if (isLoading) {
+        return <div>Загрузка...</div>;
     }
 
     if (!user) {

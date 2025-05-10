@@ -1,4 +1,3 @@
-// AuthContext.tsx
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import {jwtDecode} from 'jwt-decode';
 
@@ -15,11 +14,13 @@ interface TokenPayload extends User {
 interface AuthContextType {
     user: User | null;
     setUser: (user: User | null) => void;
+    isLoading: boolean;
 }
 
 export const AuthContext = createContext<AuthContextType>({
     user: null,
     setUser: () => {},
+    isLoading: false,
 });
 
 interface AuthProviderProps {
@@ -28,6 +29,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     const checkTokenExpiry = () => {
         const token = localStorage.getItem('token');
@@ -46,6 +48,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 setUser(null);
             }
         }
+        setIsLoading(false);
     };
 
     const refreshAccessToken = async () => {
@@ -79,8 +82,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, setUser }}>
+        <AuthContext.Provider value={{ user, setUser, isLoading }}>
             {children}
         </AuthContext.Provider>
+
     );
 };
