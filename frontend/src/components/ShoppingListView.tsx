@@ -94,6 +94,7 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
         axios.get(`/api/shopping-lists/${shoppingListId}`)
             .then((res) => {
                 const fetchedList = res.data;
+                fetchedList.UserProducts.sort((a: UserProduct, b: UserProduct) => a.id - b.id);
                 setShoppingList(fetchedList);
                 const initialBought: Record<number, boolean> = {};
                 const initialStock: Record<number, number> = {};
@@ -193,7 +194,7 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
             const response = await axios.post(`/api/shopping-lists/${shoppingListId}/user-products`, {
                 name: newProductName,
                 quantity: newProductQuantity,
-                unit: newProductUnit || 'шт',
+                unit: newProductUnit,
             });
 
             const addedProduct = response.data;
@@ -227,7 +228,7 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
 
     const handleSaveEdit = async (productId: number) => {
         try {
-            const res = await axios.put(`/api/shopping-lists/${shoppingListId}/user-products/${productId}`, {
+            await axios.put(`/api/shopping-lists/${shoppingListId}/user-products/${productId}`, {
                 name: editedProductName,
                 quantity: editedProductQuantity,
                 unit: editedProductUnit,
@@ -236,7 +237,9 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
             setShoppingList((prevList) => ({
                 ...prevList!,
                 UserProducts: prevList!.UserProducts.map((p) =>
-                    p.id === productId ? res.data : p
+                    p.id === editingProductId
+                        ? { ...p, name: editedProductName, quantity: editedProductQuantity, unit: editedProductUnit }
+                        : p
                 ),
             }));
 
