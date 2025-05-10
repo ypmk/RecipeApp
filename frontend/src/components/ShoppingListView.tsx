@@ -35,6 +35,12 @@ interface ShoppingListViewProps {
     shoppingListId: number;
 }
 
+interface IngredientUnit {
+    ing_unit_id: number;
+    name: string;
+}
+
+
 const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) => {
     const [shoppingList, setShoppingList] = useState<ShoppingList | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
@@ -49,7 +55,6 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
     const [isStockChanged, setIsStockChanged] = useState<boolean>(false);
     const [newProductName, setNewProductName] = useState('');
     const [newProductQuantity, setNewProductQuantity] = useState(1);
-    const [newProductUnit, setNewProductUnit] = useState('');
     const [productNameError, setProductNameError] = useState('');
     const [productQuantityError, setProductQuantityError] = useState('');
     const [formSubmitted, setFormSubmitted] = useState(false);
@@ -60,12 +65,27 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
     const [confirmDeleteProductOpen, setConfirmDeleteProductOpen] = useState(false);
     const [productIdToDelete, setProductIdToDelete] = useState<number | null>(null);
     const [showAddProductRow, setShowAddProductRow] = useState(false);
+    const [allUnits, setAllUnits] = useState<IngredientUnit[]>([]);
+    const [newProductUnit, setNewProductUnit] = useState('шт');
+    const allowedUnits = ['шт', 'кг', 'гр', 'л', 'мл'];
 
     const toggleAddProductRow = () => {
         setShowAddProductRow((prev) => !prev);
     };
 
+    useEffect(() => {
+        const fetchUnits = async () => {
+            try {
+                const response = await axios.get('/api/ingredient-units');
+                setAllUnits(response.data);
+            } catch (error) {
+                console.error('Ошибка загрузки единиц измерения:', error);
+            }
+        };
+        fetchUnits();
+    }, []);
 
+    const filteredUnits = allUnits.filter((unit) => allowedUnits.includes(unit.name));
 
 
     const navigate = useNavigate();
@@ -455,12 +475,17 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                                         />
                                     </td>
                                     <td className="px-6 py-2 text-center">
-                                        <input
-                                            type="text"
+                                        <select
                                             value={editedProductUnit}
                                             onChange={(e) => setEditedProductUnit(e.target.value)}
-                                            className="border px-2 py-1 rounded w-20 text-center"
-                                        />
+                                            className="border px-2 py-1 rounded w-24 text-center"
+                                        >
+                                            {filteredUnits.map((unit) => (
+                                                <option key={unit.ing_unit_id} value={unit.name}>
+                                                    {unit.name}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </td>
                                     <td className="px-6 py-2 text-center flex justify-center gap-5">
                                         <button
@@ -583,6 +608,7 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                 onCancel={() => setConfirmDeleteProductOpen(false)}
                 onConfirm={handleConfirmDeleteUserProduct}
             />
+            {/* Модальное окно для добавления */}
             {showAddProductRow && (
                 <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
                     <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
@@ -606,13 +632,17 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                                     formSubmitted && productQuantityError ? 'border-red-500' : 'border-gray-300'
                                 }`}
                             />
-                            <input
-                                type="text"
-                                placeholder="Ед. изм."
+                            <select
                                 value={newProductUnit}
                                 onChange={(e) => setNewProductUnit(e.target.value)}
                                 className="border px-3 py-2 rounded w-full"
-                            />
+                            >
+                                {filteredUnits.map((unit) => (
+                                    <option key={unit.ing_unit_id} value={unit.name}>
+                                        {unit.name}
+                                    </option>
+                                ))}
+                            </select>
                             <div className="flex justify-end gap-2">
                                 <button
                                     onClick={() => setShowAddProductRow(false)}
@@ -622,7 +652,7 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                                 </button>
                                 <button
                                     onClick={handleAddProduct}
-                                    className="px-4 py-2 text-sm bg-[#f18963] hover:bg-[#f17963] text-white rounded"
+                                    className="px-4 py-2 text-sm bg-[#F19953] hover:bg-[#f18953] text-white rounded"
                                 >
                                     Добавить
                                 </button>
@@ -631,6 +661,7 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                     </div>
                 </div>
             )}
+
 
 
         </div>
