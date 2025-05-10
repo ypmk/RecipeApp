@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
-import {Edit3, Trash2, Circle, CheckCircle, ShoppingCart, Package} from "lucide-react"; // добавляем иконку Package
+import {Edit3, Trash2, Circle, CheckCircle, ShoppingCart, Package, X, Plus} from "lucide-react"; // добавляем иконку Package
 import ConfirmModal from "./ConfirmModal.tsx";
 
 interface ShoppingItem {
@@ -206,12 +206,13 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                                             </button>
                                         ) : (
                                             <button
-                                                onClick={() => setEditStockMode(true)}
-                                                className="text-gray-500 hover:text-yellow-500"
+                                                onClick={() => setEditStockMode((prev) => !prev)}
+                                                className={`text-gray-500 hover:text-yellow-500 ${editStockMode ? 'text-yellow-500' : ''}`}
                                                 title="Редактировать запасы"
                                             >
                                                 <Edit3 size={16} />
                                             </button>
+
                                         )}
                                     </div>
                                 </div>
