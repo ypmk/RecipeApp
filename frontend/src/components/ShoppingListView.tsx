@@ -533,56 +533,7 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                         </tr>
                     ))}
 
-                    {/* Строка для добавления продукта — показывается только если showAddProductRow === true */}
-                    {showAddProductRow && (
-                        <tr>
-                            <td className="px-6 py-2">
-                                <input
-                                    type="text"
-                                    placeholder="Название"
-                                    value={newProductName}
-                                    onChange={(e) => setNewProductName(e.target.value)}
-                                    className={`border px-2 py-1 rounded w-full ${
-                                        formSubmitted && productNameError ? 'border-red-500' : 'border-gray-300'
-                                    }`}
-                                />
-                                {formSubmitted && productNameError && (
-                                    <p className="text-red-500 text-xs mt-1">{productNameError}</p>
-                                )}
-                            </td>
-                            <td className="px-6 py-2 text-center">
-                                <input
-                                    type="number"
-                                    placeholder="Кол-во"
-                                    value={newProductQuantity}
-                                    onChange={(e) => setNewProductQuantity(Number(e.target.value))}
-                                    className={`border px-2 py-1 rounded w-20 text-center ${
-                                        formSubmitted && productQuantityError ? 'border-red-500' : 'border-gray-300'
-                                    }`}
-                                />
-                                {formSubmitted && productQuantityError && (
-                                    <p className="text-red-500 text-xs mt-1">{productQuantityError}</p>
-                                )}
-                            </td>
-                            <td className="px-6 py-2 text-center flex justify-center">
-                                <input
-                                    type="text"
-                                    placeholder="Ед."
-                                    value={newProductUnit}
-                                    onChange={(e) => setNewProductUnit(e.target.value)}
-                                    className="border border-gray-300 px-2 py-1 rounded w-20 text-center mr-2"
-                                />
-                                <button
-                                    onClick={handleAddProduct}
-                                    className="bg-[#F19953] hover:bg-[#f18953] text-white px-3 py-1 rounded"
-                                    title="Добавить"
-                                >
-                                    ➕
-                                </button>
-                            </td>
-                            <td></td>
-                        </tr>
-                    )}
+
                     </tbody>
 
 
