@@ -9,6 +9,8 @@ import ShoppingItems from '../models/ShoppingItems';
 import IngredientUnits from '../models/IngredientUnits';
 import {User} from "../models";
 import Friendship from "../models/Friendship";
+import UserProducts from '../models/UserProducts';
+
 import {Op} from "sequelize";
 
 const router = Router();
@@ -196,13 +198,10 @@ router.get('/:shoppingListId', authenticateJWT, async (req: AuthenticatedRequest
         }
         const shoppingList = await ShoppingLists.findOne({
             where: { shopping_list_id: shoppingListId, user_id: userId },
-            include: [{
-                model: ShoppingItems,
-                include: [{
-                    model: Ingredient,
-                    attributes: ['name']
-                }]
-            }]
+            include: [
+                { model: ShoppingItems, include: [{ model: Ingredient, attributes: ['name'] }] },
+                { model: UserProducts }
+            ]
         });
         if (!shoppingList) {
             res.status(404).json({ message: 'Список покупок не найден' });
@@ -436,6 +435,94 @@ router.post('/:shoppingListId/transfer', authenticateJWT, async (req: Authentica
         res.status(500).json({ message: 'Server error' });
     }
 });
+
+
+router.post('/:shoppingListId/user-products', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+    const { shoppingListId } = req.params;
+    const { name, quantity, unit } = req.body;
+    const userId = req.user?.id;
+    try {
+        const shoppingList = await ShoppingLists.findOne({ where: { shopping_list_id: shoppingListId, user_id: userId } });
+        if (!shoppingList){
+            res.status(404).json({ message: 'Список не найден' });
+            return
+        }
+        const product = await UserProducts.create({ shopping_list_id: shoppingListId, name, quantity, unit, bought: false });
+        res.status(201).json(product);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+router.delete('/:shoppingListId/user-products/:userProductId', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+    const { shoppingListId, userProductId } = req.params;
+    const userId = req.user?.id;
+
+    try {
+        const shoppingList = await ShoppingLists.findOne({
+            where: { shopping_list_id: shoppingListId, user_id: userId }
+        });
+        if (!shoppingList) {
+            res.status(404).json({ message: 'Список не найден' });
+            return;
+        }
+
+        const product = await UserProducts.findOne({
+            where: { id: userProductId, shopping_list_id: shoppingListId }
+        });
+
+        if (!product) {
+            res.status(404).json({ message: 'Продукт не найден' });
+            return;
+        }
+
+        await product.destroy();
+        res.json({ message: 'Продукт удалён' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+
+router.put('/:shoppingListId/user-products/:userProductId', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
+    const { shoppingListId, userProductId } = req.params;
+    const { name, quantity, unit, bought } = req.body;
+    const userId = req.user?.id;
+
+    try {
+        const shoppingList = await ShoppingLists.findOne({
+            where: { shopping_list_id: shoppingListId, user_id: userId }
+        });
+        if (!shoppingList) {
+            res.status(404).json({ message: 'Список не найден' });
+            return;
+        }
+
+        const product = await UserProducts.findOne({
+            where: { id: userProductId, shopping_list_id: shoppingListId }
+        });
+
+        if (!product) {
+            res.status(404).json({ message: 'Продукт не найден' });
+            return;
+        }
+
+        if (name !== undefined) product.name = name;
+        if (quantity !== undefined) product.quantity = quantity;
+        if (unit !== undefined) product.unit = unit;
+        if (bought !== undefined) product.bought = bought;
+
+        await product.save();
+        res.json(product);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+
 
 
 

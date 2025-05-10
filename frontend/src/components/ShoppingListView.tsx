@@ -16,10 +16,19 @@ interface ShoppingItem {
     };
 }
 
+interface UserProduct {
+    id: number;
+    name: string;
+    quantity: number;
+    unit: string;
+}
+
+
 interface ShoppingList {
     shopping_list_id: number;
     name: string;
     ShoppingItems: ShoppingItem[];
+    UserProducts: UserProduct[];
 }
 
 interface ShoppingListViewProps {
@@ -38,6 +47,24 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
     const [inStock, setInStock] = useState<Record<number, number>>({});
     const [editStockMode, setEditStockMode] = useState<boolean>(false);
     const [isStockChanged, setIsStockChanged] = useState<boolean>(false);
+    const [newProductName, setNewProductName] = useState('');
+    const [newProductQuantity, setNewProductQuantity] = useState(1);
+    const [newProductUnit, setNewProductUnit] = useState('');
+    const [productNameError, setProductNameError] = useState('');
+    const [productQuantityError, setProductQuantityError] = useState('');
+    const [formSubmitted, setFormSubmitted] = useState(false);
+    const [editingProductId, setEditingProductId] = useState<number | null>(null);
+    const [editedProductName, setEditedProductName] = useState('');
+    const [editedProductQuantity, setEditedProductQuantity] = useState(1);
+    const [editedProductUnit, setEditedProductUnit] = useState('');
+    const [confirmDeleteProductOpen, setConfirmDeleteProductOpen] = useState(false);
+    const [productIdToDelete, setProductIdToDelete] = useState<number | null>(null);
+    const [showAddProductRow, setShowAddProductRow] = useState(false);
+
+    const toggleAddProductRow = () => {
+        setShowAddProductRow((prev) => !prev);
+    };
+
 
 
 
@@ -120,6 +147,101 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
             console.log('Ошибка при сохранении запасов');
         }
     };
+
+    const handleAddProduct = async () => {
+        setFormSubmitted(true);
+
+        let hasError = false;
+
+        if (!newProductName.trim()) {
+            setProductNameError('Введите название продукта');
+            hasError = true;
+        } else {
+            setProductNameError('');
+        }
+
+        if (!newProductQuantity || newProductQuantity <= 0) {
+            setProductQuantityError('Введите количество больше нуля');
+            hasError = true;
+        } else {
+            setProductQuantityError('');
+        }
+
+        if (hasError) return;
+
+        try {
+            const response = await axios.post(`/api/shopping-lists/${shoppingListId}/user-products`, {
+                name: newProductName,
+                quantity: newProductQuantity,
+                unit: newProductUnit,
+            });
+
+            const addedProduct = response.data;
+
+            setShoppingList((prevList) => ({
+                ...prevList!,
+                UserProducts: [...prevList!.UserProducts, addedProduct],
+            }));
+
+
+            setNewProductName('');
+            setNewProductQuantity(1);
+            setNewProductUnit('');
+            setProductNameError('');
+            setProductQuantityError('');
+            setFormSubmitted(false);
+        } catch (error) {
+            console.error('Ошибка добавления продукта:', error);
+        }
+    };
+
+
+
+    const startEditProduct = (product: UserProduct) => {
+        setEditingProductId(product.id);
+        setEditedProductName(product.name);
+        setEditedProductQuantity(product.quantity);
+        setEditedProductUnit(product.unit);
+    };
+
+    const handleSaveEdit = async (productId: number) => {
+        try {
+            const res = await axios.put(`/api/shopping-lists/${shoppingListId}/user-products/${productId}`, {
+                name: editedProductName,
+                quantity: editedProductQuantity,
+                unit: editedProductUnit,
+            });
+
+            setShoppingList((prevList) => ({
+                ...prevList!,
+                UserProducts: prevList!.UserProducts.map((p) =>
+                    p.id === productId ? res.data : p
+                ),
+            }));
+
+            setEditingProductId(null);
+        } catch (error) {
+            console.error('Ошибка при сохранении продукта:', error);
+        }
+    };
+
+
+    const handleConfirmDeleteUserProduct = async () => {
+        if (productIdToDelete === null) return;
+        try {
+            await axios.delete(`/api/shopping-lists/${shoppingListId}/user-products/${productIdToDelete}`);
+            setShoppingList((prevList) => ({
+                ...prevList!,
+                UserProducts: prevList!.UserProducts.filter((p) => p.id !== productIdToDelete),
+            }));
+        } catch (error) {
+            console.error('Ошибка при удалении продукта:', error);
+        } finally {
+            setConfirmDeleteProductOpen(false);
+            setProductIdToDelete(null);
+        }
+    };
+
 
 
     if (loading) return <div className="text-center text-gray-500">Загрузка...</div>;
@@ -285,6 +407,166 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                     </tbody>
                 </table>
             </div>
+
+            <div className="mt-6 mb-2 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-800">Сопутствующие продукты</h3>
+                <button
+                    onClick={toggleAddProductRow}
+                    className="border rounded-lg p-2 shadow-sm hover:bg-gray-100 transition-colors duration-200"
+                    title="Добавить продукт"
+                >
+                    <Plus size={20} className="text-gray-700" />
+                </button>
+
+
+            </div>
+
+
+            <div className="bg-white shadow-md rounded-xl overflow-auto mb-6">
+                <table className="min-w-full table-auto">
+                    <thead className="bg-gray-100">
+                    <tr>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Продукт</th>
+                        <th className="px-6 py-3 text-center text-sm font-medium text-gray-700">Количество</th>
+                        <th className="px-6 py-3 text-center text-sm font-medium text-gray-700">Ед. изм.</th>
+                        <th className="px-6 py-3 text-center text-sm font-medium text-gray-700">Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                    {shoppingList.UserProducts?.length > 0 && shoppingList.UserProducts.map((product) => (
+                        <tr key={product.id} className="hover:bg-gray-50">
+                            {editingProductId === product.id ? (
+                                <>
+                                    <td className="px-6 py-2">
+                                        <input
+                                            type="text"
+                                            value={editedProductName}
+                                            onChange={(e) => setEditedProductName(e.target.value)}
+                                            className="border px-2 py-1 rounded w-full"
+                                        />
+                                    </td>
+                                    <td className="px-6 py-2 text-center">
+                                        <input
+                                            type="number"
+                                            value={editedProductQuantity}
+                                            onChange={(e) => setEditedProductQuantity(Number(e.target.value))}
+                                            className="border px-2 py-1 rounded w-20 text-center"
+                                        />
+                                    </td>
+                                    <td className="px-6 py-2 text-center">
+                                        <input
+                                            type="text"
+                                            value={editedProductUnit}
+                                            onChange={(e) => setEditedProductUnit(e.target.value)}
+                                            className="border px-2 py-1 rounded w-20 text-center"
+                                        />
+                                    </td>
+                                    <td className="px-6 py-2 text-center flex justify-center gap-5">
+                                        <button
+                                            onClick={() => handleSaveEdit(product.id)}
+                                            className="py-2 text-green-500 hover:text-green-700"
+                                            title="Сохранить"
+                                        >
+                                            <CheckCircle size={20} />
+                                        </button>
+                                        <button
+                                            onClick={() => setEditingProductId(null)}
+                                            className="text-gray-600 hover:text-gray-800"
+                                            title="Отмена"
+                                        >
+                                            <X size={20} />
+                                        </button>
+                                    </td>
+                                </>
+                            ) : (
+                                <>
+                                    <td className="px-6 py-4 text-sm">{product.name}</td>
+                                    <td className="px-6 py-4 text-sm text-center">{product.quantity}</td>
+                                    <td className="px-6 py-4 text-sm text-center">{product.unit}</td>
+                                    <td className="px-6 py-4 text-center flex justify-center gap-5">
+                                        <button
+                                            onClick={() => startEditProduct(product)}
+                                            className="text-gray-700 hover:text-yellow-700"
+                                            title="Редактировать"
+                                        >
+                                            <Edit3 size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setProductIdToDelete(product.id);
+                                                setConfirmDeleteProductOpen(true);
+                                            }}
+                                            className="text-red-500 hover:text-red-700"
+                                            title="Удалить"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </td>
+                                </>
+                            )}
+                        </tr>
+                    ))}
+
+                    {/* Строка для добавления продукта — показывается только если showAddProductRow === true */}
+                    {showAddProductRow && (
+                        <tr>
+                            <td className="px-6 py-2">
+                                <input
+                                    type="text"
+                                    placeholder="Название"
+                                    value={newProductName}
+                                    onChange={(e) => setNewProductName(e.target.value)}
+                                    className={`border px-2 py-1 rounded w-full ${
+                                        formSubmitted && productNameError ? 'border-red-500' : 'border-gray-300'
+                                    }`}
+                                />
+                                {formSubmitted && productNameError && (
+                                    <p className="text-red-500 text-xs mt-1">{productNameError}</p>
+                                )}
+                            </td>
+                            <td className="px-6 py-2 text-center">
+                                <input
+                                    type="number"
+                                    placeholder="Кол-во"
+                                    value={newProductQuantity}
+                                    onChange={(e) => setNewProductQuantity(Number(e.target.value))}
+                                    className={`border px-2 py-1 rounded w-20 text-center ${
+                                        formSubmitted && productQuantityError ? 'border-red-500' : 'border-gray-300'
+                                    }`}
+                                />
+                                {formSubmitted && productQuantityError && (
+                                    <p className="text-red-500 text-xs mt-1">{productQuantityError}</p>
+                                )}
+                            </td>
+                            <td className="px-6 py-2 text-center flex justify-center">
+                                <input
+                                    type="text"
+                                    placeholder="Ед."
+                                    value={newProductUnit}
+                                    onChange={(e) => setNewProductUnit(e.target.value)}
+                                    className="border border-gray-300 px-2 py-1 rounded w-20 text-center mr-2"
+                                />
+                                <button
+                                    onClick={handleAddProduct}
+                                    className="bg-[#F19953] hover:bg-[#f18953] text-white px-3 py-1 rounded"
+                                    title="Добавить"
+                                >
+                                    ➕
+                                </button>
+                            </td>
+                            <td></td>
+                        </tr>
+                    )}
+                    </tbody>
+
+
+                </table>
+
+
+
+
+
+        </div>
 
             <ConfirmModal
                 isOpen={confirmDeleteOpen}

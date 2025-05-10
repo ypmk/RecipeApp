@@ -3,10 +3,11 @@ import {
     DataTypes,
     InferAttributes,
     InferCreationAttributes,
-    CreationOptional,
+    CreationOptional
 } from 'sequelize';
 import  sequelize  from '../database';
 import ShoppingItems from './ShoppingItems';
+import {UserProducts} from "./index";
 
 class ShoppingLists extends Model<
     InferAttributes<ShoppingLists>,
@@ -44,5 +45,6 @@ ShoppingLists.init(
         tableName: 'shopping_lists',
     }
 );
+
 
 export default ShoppingLists;
