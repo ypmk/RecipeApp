@@ -295,8 +295,12 @@ router.delete('/:shoppingListId', authenticateJWT, async (req: AuthenticatedRequ
             res.status(404).json({ message: 'Список покупок не найден' });
             return;
         }
+        await ShoppingItems.destroy({ where: { shopping_list_id: shoppingListId } });
+        await UserProducts.destroy({ where: { shopping_list_id: shoppingListId } });
         await shoppingList.destroy();
-        res.json({ message: 'Список покупок удалён' });
+
+        res.json({ message: 'Список покупок и связанные товары удалены' });
+
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
