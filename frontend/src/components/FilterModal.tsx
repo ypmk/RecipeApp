@@ -85,6 +85,19 @@ const FilterModal: React.FC<FilterModalProps> = ({
         }
     }, [isOpen]);
 
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isOpen]);
+
+
     const toggleCollection = (id: number) => {
         setSelectedCollections((prev) =>
             prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
