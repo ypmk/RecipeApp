@@ -52,7 +52,11 @@ const ShoppingListsList: React.FC = () => {
                                     {list.name}
                                 </h3>
                                 <p className="text-sm text-center text-gray-500 mt-2">
-                                    Позиций: {list.ShoppingItems?.length ?? 0}
+                                    Создан: {new Date(list.createdAt).toLocaleDateString('ru-RU', {
+                                    day: '2-digit',
+                                    month: 'long',
+                                    year: 'numeric',
+                                })}
                                 </p>
                             </div>
                         </Link>
