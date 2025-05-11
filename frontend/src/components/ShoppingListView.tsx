@@ -21,6 +21,7 @@ interface UserProduct {
     name: string;
     quantity: number;
     unit: string;
+    bought: boolean;
 }
 
 
@@ -68,6 +69,8 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
     const [allUnits, setAllUnits] = useState<IngredientUnit[]>([]);
     const [newProductUnit, setNewProductUnit] = useState('шт');
     const allowedUnits = ['шт', 'кг', 'гр', 'л', 'мл'];
+    const [boughtUserProducts, setBoughtUserProducts] = useState<Record<number, boolean>>({});
+
 
     const toggleAddProductRow = () => {
         setShowAddProductRow((prev) => !prev);
@@ -102,6 +105,11 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                     initialBought[item.shopping_item_id] = item.bought;
                     initialStock[item.shopping_item_id] = item.in_stock_quantity || 0;
                 });
+                const initialBoughtUserProducts: Record<number, boolean> = {};
+                fetchedList.UserProducts.forEach((product: UserProduct) => {
+                    initialBoughtUserProducts[product.id] = product.bought;
+                });
+                setBoughtUserProducts(initialBoughtUserProducts);
                 setBoughtItems(initialBought);
                 setInStock(initialStock);
             })
@@ -269,6 +277,23 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
         } finally {
             setConfirmDeleteProductOpen(false);
             setProductIdToDelete(null);
+        }
+    };
+
+    const toggleUserProductBought = async (productId: number) => {
+        const newBought = !boughtUserProducts[productId];
+        try {
+            await axios.put(
+                `/api/shopping-lists/${shoppingListId}/user-products/${productId}`,
+                { bought: newBought },
+                { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+            );
+            setBoughtUserProducts(prev => ({
+                ...prev,
+                [productId]: newBought,
+            }));
+        } catch (error) {
+            console.error('Ошибка обновления статуса покупки продукта', error);
         }
     };
 
@@ -456,6 +481,7 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                     {shoppingList.UserProducts.length > 0 && (
                     <thead className="bg-gray-100">
                     <tr>
+                        {inStoreMode && <th className="px-4 py-3 w-10"></th>}
                         <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Продукт</th>
                         <th className="px-6 py-3 text-center text-sm font-medium text-gray-700">Количество</th>
                         <th className="px-6 py-3 text-center text-sm font-medium text-gray-700">Ед. изм.</th>
@@ -465,18 +491,24 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                     )}
                     <tbody className="divide-y divide-gray-200">
                     {shoppingList.UserProducts?.length > 0 && shoppingList.UserProducts.map((product) => (
-                        <tr key={product.id} className="hover:bg-gray-50">
+                        <tr
+                            key={product.id}
+                            className={`transition ${inStoreMode && boughtUserProducts[product.id] ? 'bg-gray-200 text-gray-500' : 'hover:bg-gray-50'}`}
+                        >
+                            {inStoreMode && (
+                                <td className="px-4 py-4">
+                                    <button onClick={() => toggleUserProductBought(product.id)}>
+                                        {boughtUserProducts[product.id]
+                                            ? <CheckCircle size={20} className="text-green-500" />
+                                            : <Circle size={20} className="text-gray-300" />
+                                        }
+                                    </button>
+                                </td>
+                            )}
+
                             {editingProductId === product.id ? (
                                 <>
                                     <td className="px-6 py-2">
-                                        <input
-                                            type="text"
-                                            value={editedProductName}
-                                            onChange={(e) => setEditedProductName(e.target.value)}
-                                            className="border px-2 py-1 rounded w-full"
-                                        />
-                                    </td>
-                                    <td className="px-6 py-2 text-center">
                                         <input
                                             type="text"
                                             inputMode="decimal"
@@ -553,6 +585,7 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                                 </>
                             )}
                         </tr>
+
                     ))}
 
 
