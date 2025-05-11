@@ -1,14 +1,14 @@
-// CreateRecipe.tsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface IngredientInput {
+    ingredient_id?: number;
     name: string;
-    quantity: number;
+    quantity: number | string;
     unit_id: number;
-    [key: string]: string | number;
+    [key: string]: string | number | undefined;
 }
 
 interface UnitOption {
@@ -30,12 +30,9 @@ interface CookingTimeOption {
 function CreateRecipe() {
     const [name, setName] = useState('');
     const [instructions, setInstructions] = useState('');
-
-    // Новое состояние для выбора времени приготовления (идентификатор выбранного варианта)
     const [cookingTimeId, setCookingTimeId] = useState('');
-
     const [numberOfServings, setNumberOfServings] = useState('');
-    const [ingredients, setIngredients] = useState<IngredientInput[]>([{ name: '', quantity: 1, unit_id: 1 }]);
+    const [ingredients, setIngredients] = useState<IngredientInput[]>([{ name: '', quantity: '', unit_id: 1 }]);
     const [unitOptions, setUnitOptions] = useState<UnitOption[]>([]);
     const [ingredientErrors, setIngredientErrors] = useState<string[]>([]);
     const [error, setError] = useState<string | null>(null);
@@ -50,18 +47,16 @@ function CreateRecipe() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Загружаем единицы измерения для ингредиентов
         axios
             .get<UnitOption[]>('/api/ingredient-units')
             .then((res) => setUnitOptions(res.data))
             .catch((err) => console.error('Ошибка загрузки единиц:', err));
 
-        // Загружаем варианты времени приготовления из таблицы CookingTime
+
         axios
             .get<CookingTimeOption[]>('/api/cooking-times')
             .then((res) => {
                 setCookingTimeOptions(res.data);
-                // Можно задать значение по умолчанию, например первый вариант:
                 if (res.data.length > 0) {
                     setCookingTimeId(String(res.data[0].id));
                 }
@@ -70,11 +65,12 @@ function CreateRecipe() {
     }, []);
 
     const handleAddIngredient = () => {
-        setIngredients([...ingredients, { name: '', quantity: 1, unit_id: 1 }]);
-        setIngredientErrors([...ingredientErrors, '']);
-        setSuggestions([...suggestions, []]);
-        setShowSuggestions([...showSuggestions, false]);
+        setIngredients(prev => [...prev, { name: '', quantity: '', unit_id: 1 }]); // ← пустая строка
+        setSuggestions(prev => [...prev, []]);
+        setShowSuggestions(prev => [...prev, false]);
     };
+
+
 
     const handleRemoveIngredient = (index: number) => {
         if (ingredients.length === 1) return;
@@ -86,9 +82,14 @@ function CreateRecipe() {
 
     const handleIngredientChange = (index: number, field: keyof IngredientInput, value: any) => {
         const newIngredients = [...ingredients];
-        newIngredients[index][field] = field === 'quantity' ? Number(value) : value;
+        if (field === 'quantity') {
+            newIngredients[index][field] = value;
+        } else {
+            newIngredients[index][field] = value;
+        }
         setIngredients(newIngredients);
     };
+
 
     const handleNameChange = async (index: number, value: string) => {
         handleIngredientChange(index, 'name', value);
@@ -181,12 +182,17 @@ function CreateRecipe() {
             const recipeId = recipeRes.data.recipe_id;
 
             for (let i = 0; i < ingredients.length; i++) {
-                const { name, quantity, unit_id } = ingredients[i];
+                const quantityToSend =
+                    ingredients[i].quantity === ''
+                        ? 1
+                        : Number(ingredients[i].quantity);
+
+                const { name, unit_id } = ingredients[i];
                 if (!name.trim()) continue;
                 try {
                     await axios.post(
                         `/api/recipes/${recipeId}/ingredients`,
-                        { name, quantity, unit_id },
+                        { name, quantity: quantityToSend, unit_id },
                         { headers }
                     );
                 } catch (err: any) {
@@ -324,10 +330,24 @@ function CreateRecipe() {
                                 </div>
 
                                 <input
-                                    type="number"
-                                    min={0}
+                                    type="text"
+                                    placeholder="Кол-во"
+                                    inputMode="decimal"
                                     value={ingredient.quantity}
-                                    onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        const regex = /^(\d+)?(\.\d{0,2})?$/;
+                                        if (value === '' || regex.test(value)) {
+                                            handleIngredientChange(index, 'quantity', value);
+                                        }
+                                    }}
+                                    onBlur={() => {
+                                        let quantity = ingredient.quantity;
+                                        if (quantity === '' || isNaN(Number(quantity)) || Number(quantity) <= 0) {
+                                            quantity = '1';
+                                        }
+                                        handleIngredientChange(index, 'quantity', quantity);
+                                    }}
                                     className="col-span-1 px-3 py-2 border border-gray-300 rounded-lg"
                                 />
 

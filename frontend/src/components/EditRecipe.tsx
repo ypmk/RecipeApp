@@ -12,7 +12,7 @@ interface RecipeIngredientInfo {
 interface IngredientInput {
     ingredient_id?: number;
     name: string;
-    quantity: number;
+    quantity: number | string;
     unit_id: number;
     [key: string]: string | number | undefined;
 }
@@ -166,10 +166,15 @@ const EditRecipe: React.FC = () => {
         setShowSuggestions(prev => prev.filter((_, i) => i !== index));
     };
 
+
     const handleIngredientChange = (index: number, field: keyof IngredientInput, value: any) => {
-        const updated = [...ingredients];
-        updated[index][field] = (field === 'quantity' || field === 'unit_id') ? Number(value) : value;
-        setIngredients(updated);
+        const newIngredients = [...ingredients];
+        if (field === 'quantity') {
+            newIngredients[index][field] = value;
+        } else {
+            newIngredients[index][field] = value;
+        }
+        setIngredients(newIngredients);
     };
 
     const handleNameChangeForIngredient = async (index: number, value: string) => {
@@ -500,12 +505,27 @@ const EditRecipe: React.FC = () => {
                                 </div>
 
                                 <input
-                                    type="number"
-                                    min={0}
+                                    type="text"
+                                    placeholder="Кол-во"
+                                    inputMode="decimal"
                                     value={ingredient.quantity}
-                                    onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        const regex = /^(\d+)?(\.\d{0,2})?$/;
+                                        if (value === '' || regex.test(value)) {
+                                            handleIngredientChange(index, 'quantity', value);
+                                        }
+                                    }}
+                                    onBlur={() => {
+                                        let quantity = ingredient.quantity;
+                                        if (quantity === '' || isNaN(Number(quantity)) || Number(quantity) <= 0) {
+                                            quantity = '1';
+                                        }
+                                        handleIngredientChange(index, 'quantity', quantity);
+                                    }}
                                     className="col-span-1 px-3 py-2 border border-gray-300 rounded-lg"
                                 />
+
 
                                 <select
                                     value={ingredient.unit_id}
