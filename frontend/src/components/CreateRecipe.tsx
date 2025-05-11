@@ -488,6 +488,14 @@ function CreateRecipe() {
                 >
                     {isSubmitting ? 'Создание...' : 'Создать рецепт'}
                 </button>
+                <button
+                    type="button"
+                    onClick={() => navigate('/main')}
+                    className="mt-3 w-full text-orange-600 font-bold py-2 rounded-lg border border-orange-500 hover:bg-orange-50 transition duration-200"
+                >
+                    Отмена
+                </button>
+
             </form>
 
             {error && <div className="text-red-500 mt-4 text-sm text-center">{error}</div>}
