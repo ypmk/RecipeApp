@@ -226,8 +226,9 @@ function CreateRecipe() {
     };
 
     return (
-        <div className="max-w-xl mx-auto mt-10 bg-white rounded-2xl shadow-xl p-8 border border-orange-200">
-            <h2 className="text-2xl font-extrabold text-center mb-6">Создание рецепта</h2>
+        <div className="max-w-xl mx-auto mt-6 sm:mt-10 bg-white rounded-2xl shadow-xl p-4 sm:p-8 border border-orange-200">
+
+        <h2 className="text-2xl font-extrabold text-center mb-6">Создание рецепта</h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
 
@@ -257,8 +258,8 @@ function CreateRecipe() {
                 </div>
 
                 {/* Время приготовления*/}
-                <div className="flex gap-4">
-                    <div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                <div>
                         <label className="block font-semibold text-gray-700 mb-1">Время приготовления</label>
                         <select
                             value={cookingTimeId}
@@ -293,8 +294,9 @@ function CreateRecipe() {
                     <label className="block font-semibold text-gray-700 mb-2">Ингредиенты</label>
                     {ingredients.map((ingredient, index) => (
                         <div key={index} className="mb-4">
-                            <div className="grid grid-cols-6 gap-2 items-center">
-                                <div className="relative col-span-3">
+                            <div className="flex flex-col sm:grid sm:grid-cols-6 gap-2">
+
+                            <div className="relative col-span-3">
                                     <input
                                         type="text"
                                         placeholder="Название"
@@ -329,48 +331,59 @@ function CreateRecipe() {
                                     )}
                                 </div>
 
-                                <input
-                                    type="text"
-                                    placeholder="Кол-во"
-                                    inputMode="decimal"
-                                    value={ingredient.quantity}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        const regex = /^(\d+)?(\.\d{0,2})?$/;
-                                        if (value === '' || regex.test(value)) {
-                                            handleIngredientChange(index, 'quantity', value);
-                                        }
-                                    }}
-                                    onBlur={() => {
-                                        let quantity = ingredient.quantity;
-                                        if (quantity === '' || isNaN(Number(quantity)) || Number(quantity) <= 0) {
-                                            quantity = '1';
-                                        }
-                                        handleIngredientChange(index, 'quantity', quantity);
-                                    }}
-                                    className="col-span-1 px-3 py-2 border border-gray-300 rounded-lg"
-                                />
+                                <div className="flex items-center gap-2 col-span-3 sm:col-span-3">
+                                    <input
+                                        type="text"
+                                        placeholder="Кол-во"
+                                        inputMode="decimal"
+                                        value={ingredient.quantity}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            const regex = /^(\d+)?(\.\d{0,2})?$/;
+                                            if (value === '' || regex.test(value)) {
+                                                handleIngredientChange(index, 'quantity', value);
+                                            }
+                                        }}
+                                        onBlur={() => {
+                                            let quantity = ingredient.quantity;
+                                            if (quantity === '' || isNaN(Number(quantity)) || Number(quantity) <= 0) {
+                                                quantity = '1';
+                                            }
+                                            handleIngredientChange(index, 'quantity', quantity);
+                                        }}
+                                        className="w-20 px-3 py-2 border border-gray-300 rounded-lg"
+                                    />
 
-                                <select
-                                    value={ingredient.unit_id}
-                                    onChange={(e) => handleIngredientChange(index, 'unit_id', e.target.value)}
-                                    className="col-span-1 px-2 py-2 border border-gray-300 rounded-lg"
-                                >
-                                    {unitOptions.map((unit) => (
-                                        <option key={unit.ing_unit_id} value={unit.ing_unit_id}>
-                                            {unit.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                    <select
+                                        value={ingredient.unit_id}
+                                        onChange={(e) => handleIngredientChange(index, 'unit_id', e.target.value)}
+                                        className="flex-1 px-2 py-2 border border-gray-300 rounded-lg"
+                                    >
+                                        {unitOptions.map((unit) => (
+                                            <option key={unit.ing_unit_id} value={unit.ing_unit_id}>
+                                                {unit.name}
+                                            </option>
+                                        ))}
+                                    </select>
 
-                                <button
-                                    type="button"
-                                    onClick={() => handleRemoveIngredient(index)}
-                                    className="text-red-500 px-3 hover:text-red-700"
-                                    title="Удалить ингредиент"
-                                >
-                                    <Trash2 size={18} />
-                                </button>
+                                    <div className="w-6 flex justify-center">
+                                        {!(index === ingredients.length - 1 && !ingredient.name && !ingredient.quantity) ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveIngredient(index)}
+                                                className="text-red-500 hover:text-red-700"
+                                                title="Удалить ингредиент"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        ) : (
+                                            // Пустышка для выравнивания
+                                            <div className="w-4 h-4" />
+                                        )}
+                                    </div>
+
+                                </div>
+
                             </div>
 
                             {ingredientErrors[index] && (

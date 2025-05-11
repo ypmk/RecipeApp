@@ -1,11 +1,23 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { useLocation } from 'react-router-dom';
 
 const Header = () => {
     const [menuOpen, setMenuOpen] = useState(false);
     const toggleMenu = () => setMenuOpen(prev => !prev);
     const { user,  } = useContext(AuthContext);
+    const location = useLocation();
+    const isCreatePage = location.pathname === '/createRecipe';
+    const [isMobile, setIsMobile] = useState(() => window.innerWidth < 640);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 640);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+
 
 
     const navItems = [
@@ -14,6 +26,8 @@ const Header = () => {
         { title: 'Планнер', to: '/planer' },
         { title: 'Списки', to: '/lists' },
     ];
+
+    if (isMobile && isCreatePage) return null;
 
     return (
         <header className="border-b border-[#E4E9F1] px-6 md:px-10 py-3">
