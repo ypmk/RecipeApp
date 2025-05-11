@@ -54,13 +54,13 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
     const [editStockMode, setEditStockMode] = useState<boolean>(false);
     const [isStockChanged, setIsStockChanged] = useState<boolean>(false);
     const [newProductName, setNewProductName] = useState('');
-    const [newProductQuantity, setNewProductQuantity] = useState<number | ''>(1);
+    const [newProductQuantity, setNewProductQuantity] = useState<string | number>('1');
     const [productNameError, setProductNameError] = useState('');
     const [productQuantityError, setProductQuantityError] = useState('');
     const [formSubmitted, setFormSubmitted] = useState(false);
     const [editingProductId, setEditingProductId] = useState<number | null>(null);
     const [editedProductName, setEditedProductName] = useState('');
-    const [editedProductQuantity, setEditedProductQuantity] = useState<number | ''>(1);
+    const [editedProductQuantity, setEditedProductQuantity] = useState<number | string>(1);
     const [editedProductUnit, setEditedProductUnit] = useState('');
     const [confirmDeleteProductOpen, setConfirmDeleteProductOpen] = useState(false);
     const [productIdToDelete, setProductIdToDelete] = useState<number | null>(null);
@@ -181,7 +181,7 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
             setProductNameError('');
         }
 
-        if (!newProductQuantity || newProductQuantity <= 0) {
+        if (!newProductQuantity || Number(newProductQuantity) <= 0) {
             setProductQuantityError('Введите количество больше нуля');
             hasError = true;
         } else {
@@ -241,7 +241,7 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                         ? {
                             ...p,
                             name: editedProductName,
-                            quantity: editedProductQuantity === '' ? 0 : editedProductQuantity,
+                            quantity: editedProductQuantity === '' ? 0 : Number(editedProductQuantity),
                             unit: editedProductUnit,
                         }
                         : p
@@ -477,17 +477,18 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                                     </td>
                                     <td className="px-6 py-2 text-center">
                                         <input
-                                            type="number"
+                                            type="text"
+                                            inputMode="decimal"
                                             value={editedProductQuantity === 0 ? '' : editedProductQuantity}
-                                            step="1"
-                                            min={0}
                                             onChange={(e) => {
                                                 const value = e.target.value;
-                                                const parsed = value === '' ? '' : parseFloat(value);
-                                                setEditedProductQuantity(parsed);
+                                                const regex = /^(\d+)?(\.\d{0,2})?$/;
+                                                if (value === '' || regex.test(value)) {
+                                                    setEditedProductQuantity(value);
+                                                }
                                             }}
                                             onBlur={() => {
-                                                if (editedProductQuantity === '' || Number(editedProductQuantity) <= 0) {
+                                                if (editedProductQuantity === '' || isNaN(Number(editedProductQuantity)) || Number(editedProductQuantity) <= 0) {
                                                     setEditedProductQuantity(1);
                                                 }
                                             }}
@@ -595,19 +596,20 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                                 }`}
                             />
                             <input
-                                type="number"
+                                type="text"
+                                inputMode="decimal"
                                 placeholder="Количество"
-                                value={newProductQuantity === 0 ? '' : newProductQuantity}
-                                step="1"
-                                min={0}
+                                value={newProductQuantity}
                                 onChange={(e) => {
                                     const value = e.target.value;
-                                    const parsed = value === '' ? '' : parseFloat(value);
-                                    setNewProductQuantity(parsed);
+                                    const regex = /^(\d+)?(\.\d{0,2})?$/;
+                                    if (value === '' || regex.test(value)) {
+                                        setNewProductQuantity(value);
+                                    }
                                 }}
                                 onBlur={() => {
-                                    if (editedProductQuantity === '' || Number(editedProductQuantity) <= 0) {
-                                        setEditedProductQuantity(1);
+                                    if (newProductQuantity === '' || isNaN(Number(newProductQuantity)) || Number(newProductQuantity) <= 0) {
+                                        setNewProductQuantity('1');
                                     }
                                 }}
                                 className={`border px-3 py-2 rounded w-full ${
