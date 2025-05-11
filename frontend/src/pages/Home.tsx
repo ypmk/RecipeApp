@@ -17,14 +17,16 @@ const Home: React.FC = () => {
             <Header />
             <main className="px-4 md:px-40 py-5 flex-1">
                 <div className="max-w-[960px] mx-auto">
-                    <div className="flex items-center justify-between">
-                        <SearchBar value={searchQuery} onChange={setSearchQuery} />
+                    <div className="flex flex-wrap items-center justify-between ">
+                        <div className="flex-1 min-w-[0]">
+                            <SearchBar value={searchQuery} onChange={setSearchQuery} />
+                        </div>
                         <button
                             onClick={() => setIsFilterOpen(true)}
                             className="flex items-center gap-2 h-12 px-4 bg-[#E4E9F1] text-[#141C24] text-sm font-bold rounded-xl hover:bg-[#dce2ec] transition"
                         >
                             <FaFilter className="w-4 h-4" />
-                            Фильтры
+                            <span className="hidden sm:inline">Фильтры</span>
                         </button>
                     </div>
                     <div className="flex justify-end px-5 pb-5">

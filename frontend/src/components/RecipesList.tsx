@@ -102,8 +102,8 @@ const RecipesList: React.FC<RecipesListProps> = ({ searchQuery, filters }) => {
 
     return (
         <div className="p-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {filteredRecipes.map(recipe => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredRecipes.map(recipe => (
                     <div key={recipe.recipe_id} className="relative bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden group">
                         <Link to={`/recipes/${recipe.recipe_id}`} className="block">
                             <img
