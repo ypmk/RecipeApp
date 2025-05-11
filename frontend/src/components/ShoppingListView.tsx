@@ -331,6 +331,13 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                                 <Package size={20} />
                             </button>
 
+                            <button
+                                onClick={toggleAddProductRow}
+                                className="border rounded-lg p-2 border-gray-300 shadow-sm hover:bg-gray-100 transition-colors duration-200"
+                                title="Добавить продукт"
+                            >
+                                <Plus size={20} className="text-gray-700" />
+                            </button>
                         </div>
                     </>
                 )}
@@ -438,22 +445,15 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                 </table>
             </div>
 
+            {shoppingList.UserProducts.length > 0 && (
             <div className="mt-6 mb-2 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-800">Сопутствующие продукты</h3>
-                <button
-                    onClick={toggleAddProductRow}
-                    className="border rounded-lg p-2 shadow-sm hover:bg-gray-100 transition-colors duration-200"
-                    title="Добавить продукт"
-                >
-                    <Plus size={20} className="text-gray-700" />
-                </button>
-
-
             </div>
-
+            )}
 
             <div className="bg-white shadow-md rounded-xl overflow-auto mb-6">
                 <table className="min-w-full table-auto">
+                    {shoppingList.UserProducts.length > 0 && (
                     <thead className="bg-gray-100">
                     <tr>
                         <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Продукт</th>
@@ -462,6 +462,7 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                         <th className="px-6 py-3 text-center text-sm font-medium text-gray-700">Действия</th>
                     </tr>
                     </thead>
+                    )}
                     <tbody className="divide-y divide-gray-200">
                     {shoppingList.UserProducts?.length > 0 && shoppingList.UserProducts.map((product) => (
                         <tr key={product.id} className="hover:bg-gray-50">
