@@ -245,10 +245,11 @@ const PlanerDetailPage: React.FC = () => {
     }
 
     return (
-        <div className="bg-[#F9F9F9] min-h-screen px-6 py-8">
-            <div className="w-full max-w-screen-2xl mx-auto px-4">
+        <div className="bg-[#F9F9F9] min-h-screen px-2 py-8">
+            <div className="w-full max-w-screen-2xl mx-auto px-2 sm:px-4">
+
             {/* Заголовок и кнопки */}
-                <div className="flex items-center gap-1 mb-6">
+                <div className="flex items-center gap-2 mb-6 px-2">
                     {editing ? (
                         <>
                             <input
@@ -268,7 +269,7 @@ const PlanerDetailPage: React.FC = () => {
                             <h1 className="text-3xl font-bold text-gray-800">{mealPlan.name}</h1>
                             <button
                                 onClick={handleEditClick}
-                                className="flex items-center gap-2 px-6 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg bg-white hover:bg-gray-100 transition shadow-sm"
+                                className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg bg-white hover:bg-gray-100 transition shadow-sm"
                             >
                                 <Edit3 size={22} />
                             </button>
@@ -287,8 +288,9 @@ const PlanerDetailPage: React.FC = () => {
                 </div>
 
                 {/* День и блюда */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {dayNumbers.map(day => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
+
+                {dayNumbers.map(day => (
                         <div key={day} className="bg-white rounded-xl shadow-md p-4 space-y-4">
                             <div className="flex justify-between items-center">
                                 <h2 className="text-xl font-semibold text-gray-700">День {day}</h2>
