@@ -141,6 +141,19 @@ const PlanerDetailPage: React.FC = () => {
         }
     }, [mealPlanId]);
 
+    useEffect(() => {
+        if (showAddDishModal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [showAddDishModal]);
+
+
     // Группировка блюд по дню
     const groupedRecipes: Record<number, MealPlanRecipe[]> = dayRecipes.reduce((acc, item) => {
         if (!acc[item.day]) {

@@ -67,6 +67,19 @@ const AddDishModal: React.FC<AddDishModalProps> = ({
         }
     }, [isOpen, searchQuery, filters]);
 
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isOpen]);
+
+
 
     const filteredRecipes = recipes.filter(recipe => {
 
@@ -109,9 +122,9 @@ const AddDishModal: React.FC<AddDishModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-start pt-10 bg-black bg-opacity-30 overflow-auto">
-            <div className="bg-white rounded-md max-w-3xl w-full mx-4 p-6">
-                <div className="flex items-center justify-between mb-4">
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-start pt-0 sm:pt-10 bg-black bg-opacity-30 overflow-auto">
+        <div className="bg-white rounded-md w-full max-w-3xl p-4 sm:p-6 mx-4">
+            <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-bold">Выберите блюдо</h2>
                     <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
                         <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -120,16 +133,19 @@ const AddDishModal: React.FC<AddDishModalProps> = ({
                     </button>
                 </div>
 
-                <div className="flex items-center mb-4">
-                    <SearchBar value={searchQuery} onChange={setSearchQuery} />
+                <div className="flex items-center  mb-4">
+                    <div className="flex-1">
+                        <SearchBar value={searchQuery} onChange={setSearchQuery} />
+                    </div>
                     <button
                         onClick={() => setIsFilterOpen(true)}
-                        className="flex items-center gap-1 h-12 px-4 bg-[#E4E9F1] text-[#141C24] text-sm font-medium rounded-xl hover:bg-[#dce2ec] transition"
+                        className="flex-shrink-0 flex items-center justify-center w-12 h-12 sm:w-auto sm:px-4 bg-[#E4E9F1] text-[#141C24] text-sm font-medium rounded-xl hover:bg-[#dce2ec] transition"
                     >
                         <FaFilter className="w-4 h-4" />
-                        Фильтры
+                        <span className="hidden sm:inline ml-2">Фильтры</span>
                     </button>
                 </div>
+
 
                 {loading ? (
                     <p>Загрузка рецептов...</p>
