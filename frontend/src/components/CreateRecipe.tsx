@@ -367,7 +367,7 @@ function CreateRecipe() {
                                     </select>
 
                                     <div className="w-6 flex justify-center">
-                                        {!(index === ingredients.length - 1 && !ingredient.name && !ingredient.quantity) ? (
+                                        {ingredients.length > 1 ? (
                                             <button
                                                 type="button"
                                                 onClick={() => handleRemoveIngredient(index)}
@@ -377,9 +377,9 @@ function CreateRecipe() {
                                                 <Trash2 size={18} />
                                             </button>
                                         ) : (
-                                            // Пустышка для выравнивания
                                             <div className="w-4 h-4" />
                                         )}
+
                                     </div>
 
                                 </div>
