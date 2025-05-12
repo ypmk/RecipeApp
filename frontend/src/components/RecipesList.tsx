@@ -101,7 +101,7 @@ const RecipesList: React.FC<RecipesListProps> = ({ searchQuery, filters }) => {
 
 
     return (
-        <div className="p-4">
+        <div className="p-2">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredRecipes.map(recipe => (
                     <div key={recipe.recipe_id} className="relative bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden group">
@@ -111,7 +111,7 @@ const RecipesList: React.FC<RecipesListProps> = ({ searchQuery, filters }) => {
                                 alt={recipe.name}
                                 className="w-full h-48 object-cover"
                             />
-                            <div className="p-3 text-sm font-medium text-gray-800">
+                            <div className="p-3 text-base font-medium text-gray-800">
                                 {recipe.name}
                             </div>
                         </Link>
