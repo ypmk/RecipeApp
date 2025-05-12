@@ -9,6 +9,7 @@ const Header = () => {
     const { user,  } = useContext(AuthContext);
     const location = useLocation();
     const isCreatePage = location.pathname === '/createRecipe';
+    const isEditPage = /^\/recipes\/\d+\/edit$/.test(location.pathname);
     const [isMobile, setIsMobile] = useState(() => window.innerWidth < 640);
 
     useEffect(() => {
@@ -27,7 +28,8 @@ const Header = () => {
         { title: 'Списки', to: '/lists' },
     ];
 
-    if (isMobile && isCreatePage) return null;
+    if (isMobile && (isCreatePage || isEditPage)) return null;
+
 
     return (
         <header className="border-b border-[#E4E9F1] px-6 md:px-10 py-3">

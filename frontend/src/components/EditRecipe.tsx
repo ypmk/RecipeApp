@@ -273,305 +273,319 @@ const EditRecipe: React.FC = () => {
     if (!recipe) return <div>Рецепт не найден</div>;
 
     return (
-        <div className="max-w-xl mx-auto mt-10 bg-white rounded-2xl shadow-xl p-8 border border-orange-200">
+        <div className="px-4 sm:px-6 mt-5 mb-4">
+            <div className="max-w-xl mx-auto mt-0 sm:mt-6 bg-white rounded-2xl shadow-xl p-4 sm:p-8 border border-orange-200">
             <h2 className="text-2xl font-bold mb-4">Редактировать рецепт</h2>
-            {error && <div className="text-red-500 mb-4">{error}</div>}
-            <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Название рецепта */}
-                <div>
-                    <label className="block font-semibold text-gray-700 mb-1">Название рецепта</label>
-                    <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Название рецепта"
-                        className="w-full px-4 py-2 border rounded-lg"
-                        required
-                    />
-                </div>
-
-                {/* Инструкции */}
-                <div>
-                    <label className="block font-semibold text-gray-700 mb-1">Способ приготовления</label>
-                    <textarea
-                        value={instructions}
-                        onChange={(e) => setInstructions(e.target.value)}
-                        placeholder="Инструкции"
-                        className="w-full px-4 py-2 border rounded-lg"
-                        rows={4}
-                    />
-                </div>
-
-                {/* Время приготовления и порции */}
-                <div className="flex gap-4">
-                    <div className="w-full">
-                        <label className="block font-semibold text-gray-700 mb-1">Время приготовления</label>
-                        <select
-                            value={cookingTimeId}
-                            onChange={(e) => setCookingTimeId(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                {error && <div className="text-red-500 mb-4">{error}</div>}
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Название рецепта */}
+                    <div>
+                        <label className="block font-semibold text-gray-700 mb-1">Название рецепта</label>
+                        <input
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="Название рецепта"
+                            className="w-full px-4 py-2 border rounded-lg"
                             required
-                        >
-                            <option value="">Выберите время приготовления</option>
-                            {cookingTimeOptions.map((option) => (
-                                <option key={option.id} value={option.id}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="w-full">
-                        <label className="block font-semibold text-gray-700 mb-1">Количество порций</label>
-                        <input
-                            type="number"
-                            value={numberOfServings}
-                            onChange={(e) => setNumberOfServings(e.target.value)}
-                            placeholder="Порции"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                         />
                     </div>
-                </div>
 
-                {/* Блок главного изображения */}
-                <div className="mb-6">
-                    <label className="block font-semibold text-gray-700 mb-2">Главное изображение</label>
-                    <div className="flex gap-2 items-start flex-wrap">
-                        {!mainImage && (
-                            <>
-                                <label
-                                    htmlFor="editMainImageInput"
-                                    className="cursor-pointer w-24 h-24 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center"
-                                >
-                                    <span className="text-4xl text-gray-400">+</span>
-                                </label>
-                                <input
-                                    id="editMainImageInput"
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleMainImageChange}
-                                    className="hidden"
-                                />
-                            </>
-                        )}
-                        {!mainImage && recipe?.main_image && (
-                            <div className="relative w-24 h-24">
-                                <img
-                                    src={recipe.main_image.startsWith('/') ? recipe.main_image : `/${recipe.main_image}`}
-                                    alt="Главное изображение"
-                                    className="w-full h-full object-cover rounded-md border border-gray-200"
-                                />
-                                <label
-                                    htmlFor="editMainImageInput"
-                                    className="absolute top-1 right-1 bg-gray-600 text-white w-6 h-6 flex items-center justify-center rounded-full shadow hover:bg-gray-700 cursor-pointer transition-colors"
-                                    title="Изменить изображение"
-                                >
-                                    ✎
-                                </label>
-                                <input
-                                    id="editMainImageInput"
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleMainImageChange}
-                                    className="hidden"
-                                />
-                            </div>
-                        )}
-                        {mainImage && (
-                            <div className="relative w-24 h-24">
-                                <img
-                                    src={URL.createObjectURL(mainImage)}
-                                    alt="Новое главное изображение"
-                                    className="w-full h-full object-cover rounded-md border border-gray-200"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setMainImage(null)}
-                                    className="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 flex items-center justify-center rounded-full shadow hover:bg-red-700 transition-colors"
-                                    title="Удалить изображение"
-                                >
-                                    &times;
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Блок дополнительных изображений */}
-                <div className="mb-4">
-                    <label className="block font-semibold text-gray-700 mb-2">Дополнительные изображения</label>
-                    <div className="flex gap-2 flex-wrap">
-                        <label
-                            htmlFor="editAdditionalImagesInput"
-                            className="cursor-pointer w-24 h-24 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center"
-                        >
-                            <span className="text-4xl text-gray-400">+</span>
-                        </label>
-                        <input
-                            id="editAdditionalImagesInput"
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            onChange={(e) => {
-                                const files = e.target.files ? Array.from(e.target.files) : [];
-                                setNewAdditionalImages((prev) => [...prev, ...files]);
-                                e.target.value = '';
-                            }}
-                            className="hidden"
+                    {/* Инструкции */}
+                    <div>
+                        <label className="block font-semibold text-gray-700 mb-1">Способ приготовления</label>
+                        <textarea
+                            value={instructions}
+                            onChange={(e) => setInstructions(e.target.value)}
+                            placeholder="Инструкции"
+                            className="w-full px-4 py-2 border rounded-lg"
+                            rows={4}
                         />
-
-                        {existingAdditionalImages.map((img) => {
-                            const url = img.image_path.startsWith('/') ? img.image_path : `/${img.image_path}`;
-                            return (
-                                <div key={img.id} className="relative w-24 h-24 rounded-md overflow-hidden">
-                                    <img
-                                        src={url}
-                                        alt={`Доп. изображение ${img.id}`}
-                                        className="w-full h-full object-cover border border-gray-200"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => handleDeleteExistingImage(img.id)}
-                                        className="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 flex items-center justify-center rounded-full shadow hover:bg-red-700 transition-colors"
-                                        title="Удалить изображение"
-                                    >
-                                        &times;
-                                    </button>
-                                </div>
-                            );
-                        })}
-
-                        {newAdditionalImages.map((file, index) => {
-                            const preview = URL.createObjectURL(file);
-                            return (
-                                <div key={`new-${index}`} className="relative w-24 h-24 rounded-md overflow-hidden">
-                                    <img
-                                        src={preview}
-                                        alt={`Новое изображение ${index + 1}`}
-                                        className="w-full h-full object-cover border border-gray-200"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setNewAdditionalImages(prev => prev.filter((_, i) => i !== index))}
-                                        className="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 flex items-center justify-center rounded-full shadow hover:bg-red-700 transition-colors"
-                                        title="Удалить изображение"
-                                    >
-                                        &times;
-                                    </button>
-                                </div>
-                            );
-                        })}
                     </div>
-                </div>
 
-                {/* Блок ингредиентов */}
-                <div>
-                    <label className="block font-semibold text-gray-700 mb-2">Ингредиенты</label>
-                    {ingredients.map((ingredient, index) => (
-                        <div key={index} className="mb-4">
-                            <div className="grid grid-cols-6 gap-2 items-center">
-                                <div className="relative col-span-3">
-                                    <input
-                                        type="text"
-                                        placeholder="Название"
-                                        value={ingredient.name}
-                                        onChange={(e) => handleNameChangeForIngredient(index, e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                        onFocus={() => {
-                                            const copy = [...showSuggestions];
-                                            copy[index] = true;
-                                            setShowSuggestions(copy);
-                                        }}
-                                        onBlur={() => {
-                                            setTimeout(() => {
-                                                const copy = [...showSuggestions];
-                                                copy[index] = false;
-                                                setShowSuggestions(copy);
-                                            }, 150);
-                                        }}
-                                    />
-                                    {showSuggestions[index] && suggestions[index]?.length > 0 && (
-                                        <ul className="absolute z-10 bg-white border border-gray-200 rounded-md mt-1 w-full shadow-lg text-sm max-h-40 overflow-y-auto">
-                                            {suggestions[index].map((sugg: any) => (
-                                                <li
-                                                    key={sugg.ingredient_id}
-                                                    onClick={() => handleSuggestionClick(index, sugg)}
-                                                    className="px-3 py-1 cursor-pointer hover:bg-orange-100"
-                                                >
-                                                    {sugg.name}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    )}
-                                </div>
-
-                                <input
-                                    type="text"
-                                    placeholder="Кол-во"
-                                    inputMode="decimal"
-                                    value={ingredient.quantity}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        const regex = /^(\d+)?(\.\d{0,2})?$/;
-                                        if (value === '' || regex.test(value)) {
-                                            handleIngredientChange(index, 'quantity', value);
-                                        }
-                                    }}
-                                    onBlur={() => {
-                                        let quantity = ingredient.quantity;
-                                        if (quantity === '' || isNaN(Number(quantity)) || Number(quantity) <= 0) {
-                                            quantity = '1';
-                                        }
-                                        handleIngredientChange(index, 'quantity', quantity);
-                                    }}
-                                    className="col-span-1 px-3 py-2 border border-gray-300 rounded-lg"
-                                />
-
-
-                                <select
-                                    value={ingredient.unit_id}
-                                    onChange={(e) => handleIngredientChange(index, 'unit_id', e.target.value)}
-                                    className="col-span-1 px-2 py-2 border border-gray-300 rounded-lg"
-                                >
-                                    {unitOptions.map((unit) => (
-                                        <option key={unit.ing_unit_id} value={unit.ing_unit_id}>
-                                            {unit.name}
-                                        </option>
-                                    ))}
-                                </select>
-
-                                <button
-                                    type="button"
-                                    onClick={() => handleRemoveIngredient(index)}
-                                    className="text-red-500 px-3 hover:text-red-700"
-                                    title="Удалить ингредиент"
-                                >
-                                    <Trash2 size={18} />
-                                </button>
-                            </div>
+                    {/* Время приготовления и порции */}
+                    <div className="flex gap-4">
+                        <div className="w-full">
+                            <label className="block font-semibold text-gray-700 mb-1">Время приготовления</label>
+                            <select
+                                value={cookingTimeId}
+                                onChange={(e) => setCookingTimeId(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                required
+                            >
+                                <option value="">Выберите время приготовления</option>
+                                {cookingTimeOptions.map((option) => (
+                                    <option key={option.id} value={option.id}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
-                    ))}
-
-                    <div className="flex mt-4">
-                        <button
-                            type="button"
-                            onClick={handleAddIngredient}
-                            className="px-4 py-2 bg-white text-orange-500 border border-orange-500 rounded-lg font-semibold hover:bg-orange-50 transition flex items-center gap-2"
-                        >
-                            <span className="text-lg">+</span> <span>Добавить ингредиент</span>
-                        </button>
+                        <div className="w-full">
+                            <label className="block font-semibold text-gray-700 mb-1">Количество порций</label>
+                            <input
+                                type="number"
+                                value={numberOfServings}
+                                onChange={(e) => setNumberOfServings(e.target.value)}
+                                placeholder="Порции"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            />
+                        </div>
                     </div>
-                </div>
 
-                <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className={`w-full text-white font-bold py-2 rounded-lg transition duration-200 ${
-                        isSubmitting ? 'bg-orange-300 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'
-                    }`}
-                >
-                    {isSubmitting ? 'Сохранение...' : 'Сохранить изменения'}
-                </button>
-            </form>
+                    {/* Блок главного изображения */}
+                    <div className="mb-6">
+                        <label className="block font-semibold text-gray-700 mb-2">Главное изображение</label>
+                        <div className="flex gap-2 items-start flex-wrap">
+                            {!mainImage && (
+                                <>
+                                    <label
+                                        htmlFor="editMainImageInput"
+                                        className="cursor-pointer w-24 h-24 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center"
+                                    >
+                                        <span className="text-4xl text-gray-400">+</span>
+                                    </label>
+                                    <input
+                                        id="editMainImageInput"
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleMainImageChange}
+                                        className="hidden"
+                                    />
+                                </>
+                            )}
+                            {!mainImage && recipe?.main_image && (
+                                <div className="relative w-24 h-24">
+                                    <img
+                                        src={recipe.main_image.startsWith('/') ? recipe.main_image : `/${recipe.main_image}`}
+                                        alt="Главное изображение"
+                                        className="w-full h-full object-cover rounded-md border border-gray-200"
+                                    />
+                                    <label
+                                        htmlFor="editMainImageInput"
+                                        className="absolute top-1 right-1 bg-gray-600 text-white w-6 h-6 flex items-center justify-center rounded-full shadow hover:bg-gray-700 cursor-pointer transition-colors"
+                                        title="Изменить изображение"
+                                    >
+                                        ✎
+                                    </label>
+                                    <input
+                                        id="editMainImageInput"
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleMainImageChange}
+                                        className="hidden"
+                                    />
+                                </div>
+                            )}
+                            {mainImage && (
+                                <div className="relative w-24 h-24">
+                                    <img
+                                        src={URL.createObjectURL(mainImage)}
+                                        alt="Новое главное изображение"
+                                        className="w-full h-full object-cover rounded-md border border-gray-200"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setMainImage(null)}
+                                        className="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 flex items-center justify-center rounded-full shadow hover:bg-red-700 transition-colors"
+                                        title="Удалить изображение"
+                                    >
+                                        &times;
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Блок дополнительных изображений */}
+                    <div className="mb-4">
+                        <label className="block font-semibold text-gray-700 mb-2">Дополнительные изображения</label>
+                        <div className="flex gap-2 flex-wrap">
+                            <label
+                                htmlFor="editAdditionalImagesInput"
+                                className="cursor-pointer w-24 h-24 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center"
+                            >
+                                <span className="text-4xl text-gray-400">+</span>
+                            </label>
+                            <input
+                                id="editAdditionalImagesInput"
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={(e) => {
+                                    const files = e.target.files ? Array.from(e.target.files) : [];
+                                    setNewAdditionalImages((prev) => [...prev, ...files]);
+                                    e.target.value = '';
+                                }}
+                                className="hidden"
+                            />
+
+                            {existingAdditionalImages.map((img) => {
+                                const url = img.image_path.startsWith('/') ? img.image_path : `/${img.image_path}`;
+                                return (
+                                    <div key={img.id} className="relative w-24 h-24 rounded-md overflow-hidden">
+                                        <img
+                                            src={url}
+                                            alt={`Доп. изображение ${img.id}`}
+                                            className="w-full h-full object-cover border border-gray-200"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDeleteExistingImage(img.id)}
+                                            className="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 flex items-center justify-center rounded-full shadow hover:bg-red-700 transition-colors"
+                                            title="Удалить изображение"
+                                        >
+                                            &times;
+                                        </button>
+                                    </div>
+                                );
+                            })}
+
+                            {newAdditionalImages.map((file, index) => {
+                                const preview = URL.createObjectURL(file);
+                                return (
+                                    <div key={`new-${index}`} className="relative w-24 h-24 rounded-md overflow-hidden">
+                                        <img
+                                            src={preview}
+                                            alt={`Новое изображение ${index + 1}`}
+                                            className="w-full h-full object-cover border border-gray-200"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setNewAdditionalImages(prev => prev.filter((_, i) => i !== index))}
+                                            className="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 flex items-center justify-center rounded-full shadow hover:bg-red-700 transition-colors"
+                                            title="Удалить изображение"
+                                        >
+                                            &times;
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Блок ингредиентов */}
+                    <div>
+                        <label className="block font-semibold text-gray-700 mb-2">Ингредиенты</label>
+                        {ingredients.map((ingredient, index) => (
+                            <div key={index} className="mb-4">
+                                <div className="grid grid-cols-6 gap-2 items-center">
+                                    <div className="relative col-span-3">
+                                        <input
+                                            type="text"
+                                            placeholder="Название"
+                                            value={ingredient.name}
+                                            onChange={(e) => handleNameChangeForIngredient(index, e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                            onFocus={() => {
+                                                const copy = [...showSuggestions];
+                                                copy[index] = true;
+                                                setShowSuggestions(copy);
+                                            }}
+                                            onBlur={() => {
+                                                setTimeout(() => {
+                                                    const copy = [...showSuggestions];
+                                                    copy[index] = false;
+                                                    setShowSuggestions(copy);
+                                                }, 150);
+                                            }}
+                                        />
+                                        {showSuggestions[index] && suggestions[index]?.length > 0 && (
+                                            <ul className="absolute z-10 bg-white border border-gray-200 rounded-md mt-1 w-full shadow-lg text-sm max-h-40 overflow-y-auto">
+                                                {suggestions[index].map((sugg: any) => (
+                                                    <li
+                                                        key={sugg.ingredient_id}
+                                                        onClick={() => handleSuggestionClick(index, sugg)}
+                                                        className="px-3 py-1 cursor-pointer hover:bg-orange-100"
+                                                    >
+                                                        {sugg.name}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </div>
+
+                                    <div className="flex items-center gap-2 col-span-3 sm:col-span-3">
+                                        <input
+                                            type="text"
+                                            placeholder="Кол-во"
+                                            inputMode="decimal"
+                                            value={ingredient.quantity}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                const regex = /^(\d+)?(\.\d{0,2})?$/;
+                                                if (value === '' || regex.test(value)) {
+                                                    handleIngredientChange(index, 'quantity', value);
+                                                }
+                                            }}
+                                            onBlur={() => {
+                                                let quantity = ingredient.quantity;
+                                                if (quantity === '' || isNaN(Number(quantity)) || Number(quantity) <= 0) {
+                                                    quantity = '1';
+                                                }
+                                                handleIngredientChange(index, 'quantity', quantity);
+                                            }}
+                                            className="w-[70px] px-3 py-2 border border-gray-300 rounded-lg"
+                                        />
+
+                                        <select
+                                            value={ingredient.unit_id}
+                                            onChange={(e) => handleIngredientChange(index, 'unit_id', e.target.value)}
+                                            className="w-[80px] px-2 py-2 border border-gray-300 rounded-lg"
+                                        >
+                                            {unitOptions.map((unit) => (
+                                                <option key={unit.ing_unit_id} value={unit.ing_unit_id}>
+                                                    {unit.name}
+                                                </option>
+                                            ))}
+                                        </select>
+
+                                        <div className="w-6 pl-1 flex justify-center">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveIngredient(index)}
+                                                className="text-red-500 hover:text-red-700"
+                                                title="Удалить ингредиент"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        ))}
+
+                        <div className="flex mt-4">
+                            <button
+                                type="button"
+                                onClick={handleAddIngredient}
+                                className="px-4 py-2 bg-white text-orange-500 border border-orange-500 rounded-lg font-semibold hover:bg-orange-50 transition flex items-center gap-2"
+                            >
+                                <span className="text-lg">+</span> <span>Добавить ингредиент</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className={`w-full text-white font-bold py-2 rounded-lg transition duration-200 ${
+                            isSubmitting ? 'bg-orange-300 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'
+                        }`}
+                    >
+                        {isSubmitting ? 'Сохранение...' : 'Сохранить изменения'}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => navigate('/main')}
+                        className="mt-3 w-full text-orange-600 font-bold py-2 rounded-lg border border-orange-500 hover:bg-orange-50 transition duration-200"
+                    >
+                        Отмена
+                    </button>
+
+                </form>
+            </div>
         </div>
     );
 };
