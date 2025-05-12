@@ -107,60 +107,70 @@ const RecipeDetails: React.FC = () => {
         fetchRecipe();
     }, [recipeId]);
 
+    useEffect(() => {
+        if (showCollections) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [showCollections]);
+
+
     if (loading) return <div className="p-4">Загрузка рецепта...</div>;
     if (!recipe) return <div className="p-4">Рецепт не найден</div>;
 
     return (
-        <div className="px-10 py-6 max-w-4xl mx-auto font-['Plus_Jakarta_Sans','Noto_Sans',sans-serif]">
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-3xl font-black text-[#1C160C]">{recipe.name}</h1>
-                <div className="flex gap-2">
-                    {/* Кнопка удаления */}
-                    <button
-                        onClick={() => setIsDeleteModalOpen(true)}
-                        title="Удалить рецепт"
-                        className="p-2 bg-white border border-gray-300 text-red-700 rounded-lg hover:bg-red-200 transition shadow-sm"
-                    >
-                        <Trash2 size={20} strokeWidth={2} />
-                    </button>
-                    {/* Кнопка "Редактировать" */}
-                    <button
-                        onClick={() => navigate(`/recipes/${recipe.recipe_id}/edit`)}
-                        className="inline-flex items-center gap-2 px-6 py-2 bg-white border border-gray-300 text-gray-800 text-sm font-bold rounded-lg hover:bg-gray-100 transition"
-                    >
-                        <Edit3 size={24} strokeWidth={2}/>
-
-                    </button>
-                    {/* Кнопка "Добавить в коллекцию"*/}
-                    <button
-                        onClick={() => setShowCollections(true)}
-                        title="Добавить в коллекцию"
-                        className="p-2 bg-white border border-gray-300 text-gray-800 rounded-lg hover:bg-gray-100 transition shadow-sm "
-                    >
-                        <Bookmark size={24} strokeWidth={2}/>
-                    </button>
+        <div className="px-1 py-6 max-w-4xl mx-auto font-['Plus_Jakarta_Sans','Noto_Sans',sans-serif]">
+            <div className="flex flex-col-reverse sm:flex-col mb-4 gap-4">
+                {/* Название и кнопки — мобильный порядок */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4">
+                    <h1 className="text-2xl font-black text-[#1C160C]">{recipe.name}</h1>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setIsDeleteModalOpen(true)}
+                            title="Удалить рецепт"
+                            className="p-2 bg-white border border-gray-300 text-red-700 rounded-lg hover:bg-red-200 transition shadow-sm"
+                        >
+                            <Trash2 size={20} strokeWidth={2} />
+                        </button>
+                        <button
+                            onClick={() => navigate(`/recipes/${recipe.recipe_id}/edit`)}
+                            className="inline-flex items-center gap-2 px-6 py-2 bg-white border border-gray-300 text-gray-800 text-sm font-bold rounded-lg hover:bg-gray-100 transition"
+                        >
+                            <Edit3 size={24} strokeWidth={2} />
+                        </button>
+                        <button
+                            onClick={() => setShowCollections(true)}
+                            title="Добавить в коллекцию"
+                            className="p-2 bg-white border border-gray-300 text-gray-800 rounded-lg hover:bg-gray-100 transition shadow-sm"
+                        >
+                            <Bookmark size={24} strokeWidth={2} />
+                        </button>
+                    </div>
                 </div>
 
-
-
+                {/* Главное изображение */}
+                <div className="w-full aspect-[5/2] rounded-xl overflow-hidden px-4">
+                    <img
+                        src={
+                            recipe.main_image.startsWith('/')
+                                ? recipe.main_image
+                                : `/${recipe.main_image}`
+                        }
+                        alt="Главное изображение рецепта"
+                        className="w-full h-full object-cover cursor-pointer"
+                        onClick={() => {
+                            setPhotoIndex(0);
+                            setIsLightboxOpen(true);
+                        }}
+                    />
+                </div>
             </div>
 
-            {/* Главное изображение */}
-            <div className="w-full aspect-[5/2] rounded-xl overflow-hidden mb-6">
-                <img
-                    src={
-                        recipe.main_image.startsWith('/')
-                            ? recipe.main_image
-                            : `/${recipe.main_image}`
-                    }
-                    alt="Главное изображение рецепта"
-                    className="w-full h-full object-cover cursor-pointer"
-                    onClick={() => {
-                        setPhotoIndex(0);
-                        setIsLightboxOpen(true);
-                    }}
-                />
-            </div>
 
             {/* Ингредиенты рецепта */}
             <h2 className="text-[22px] font-bold text-[#1C160C] px-4 pb-3">Ингредиенты:</h2>
