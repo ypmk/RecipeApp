@@ -44,27 +44,34 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="min-h-screen flex items-center justify-center p-3 bg-gray-50 px-4">
             <div className="flex flex-col sm:flex-row bg-white shadow-2xl rounded-3xl overflow-hidden w-full max-w-4xl">
 
                 {/* Левая часть — приветствие и картинка */}
-                <div className="sm:w-1/2 bg-[#f7941d] flex flex-col items-center justify-center p-10 text-white">
-                    <h2 className="text-3xl font-bold mb-2">С возвращением!</h2>
-                    <p className="text-lg text-center mb-6">
+                <div className="sm:w-1/2 bg-[#f7941d] flex flex-col items-center justify-center p-10 text-white text-center">
+                    <h2 className="text-3xl sm:text-3xl font-bold mb-2">
+                        С возвращением!
+                    </h2>
+                    <p className="text-lg sm:text-lg mb-6">
                         Войдите, чтобы продолжить искать и сохранять рецепты
                     </p>
+
+
                     <img
                         src="https://cdn-icons-png.flaticon.com/512/135/135763.png"
                         alt="login icon"
-                        className="w-40 h-40 rounded-xl shadow-lg"
+                        className="w-32 h-32 sm:w-40 sm:h-40 rounded-xl shadow-lg"
                     />
+
                 </div>
 
                 {/* Правая часть — форма логина */}
-                <div className="sm:w-1/2 p-8 sm:p-12 bg-white">
-                    <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Вход</h3>
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        <div>
+                <div className="sm:w-1/2 p-6 sm:p-12 bg-white">
+
+                <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Вход</h3>
+                    <form onSubmit={handleSubmit} className="space-y-5 w-full max-w-sm mx-auto">
+
+                    <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Имя пользователя</label>
                             <input
                                 type="text"
