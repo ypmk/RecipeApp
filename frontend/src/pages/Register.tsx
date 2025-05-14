@@ -37,12 +37,14 @@ const Register: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-            <div className="flex flex-col sm:flex-row bg-white shadow-2xl rounded-3xl overflow-hidden w-full max-w-4xl">
+        <div className="min-h-screen p-3 flex items-center justify-center bg-gray-50 px-4">
+
+        <div className="flex flex-col sm:flex-row bg-white shadow-2xl rounded-3xl overflow-hidden w-full max-w-4xl">
 
                 {/* Левая часть с изображением или заголовком */}
-                <div className="sm:w-1/2 bg-amber-500 flex flex-col items-center justify-center p-10 text-white">
-                    <h2 className="text-4xl font-bold mb-4">Добро пожаловать!</h2>
+            <div className="w-full sm:w-1/2 bg-amber-500 flex flex-col items-center justify-center p-6 sm:p-10 text-white text-center">
+
+            <h2 className="text-4xl font-bold mb-4">Добро пожаловать!</h2>
                     <p className="text-lg text-center">Создайте аккаунт и начните собирать любимые рецепты</p>
                     <img src="../../public/register_photo.jpg" alt="Food" className="mt-6 rounded-xl shadow-lg" />
                 </div>
