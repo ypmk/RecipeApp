@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
-import {Edit3, Trash2, Circle, CheckCircle, ShoppingCart, Package, X, Plus} from "lucide-react"; // добавляем иконку Package
+import {Edit3, Trash2, Circle, CheckCircle, ShoppingCart, Package, X, Plus, EyeOff, Eye} from "lucide-react"; // добавляем иконку Package
 import ConfirmModal from "./ConfirmModal.tsx";
 
 interface ShoppingItem {
@@ -70,6 +70,7 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
     const [newProductUnit, setNewProductUnit] = useState('шт');
     const allowedUnits = ['шт', 'кг', 'гр', 'л', 'мл'];
     const [boughtUserProducts, setBoughtUserProducts] = useState<Record<number, boolean>>({});
+    const [hidePlanAndStockColumns, setHidePlanAndStockColumns] = useState(false);
 
 
     const toggleAddProductRow = () => {
@@ -376,6 +377,22 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                     >
                         <Package size={20} />
                     </button>
+                    {showStockColumn && (
+                        <button
+                            onClick={() => setHidePlanAndStockColumns(prev => !prev)}
+                            className={`border rounded-lg p-2 border-gray-300 shadow-sm hover:bg-gray-100 transition-colors duration-200 ${
+                                hidePlanAndStockColumns ? 'text-gray-400' : 'text-gray-700'
+                            }`}
+                            title={hidePlanAndStockColumns ? 'Показать столбцы "по плану" и "в запасах"' : 'Скрыть столбцы "по плану" и "в запасах"'}
+                        >
+                            {hidePlanAndStockColumns ? (
+                                <EyeOff size={20} />
+                            ) : (
+                                <Eye size={20} />
+                            )}
+                        </button>
+                    )}
+
                     <button
                         onClick={toggleAddProductRow}
                         className="border rounded-lg p-2 border-gray-300 shadow-sm hover:bg-gray-100 transition-colors duration-200"
@@ -392,9 +409,13 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                     <thead className="bg-gray-100">
                     <tr>
                         {inStoreMode && <th className="px-4 py-3 w-10"></th>}
-                        <th className="px-6 py-3 w-32 text-left text-sm font-medium text-gray-700">Ингредиент</th>
-                        <th className="px-6 py-3 w-32 text-center text-sm font-medium text-gray-700">По плану</th>
-                        {showStockColumn && (
+                        <th
+                            className={`px-6 py-3 text-left text-sm font-medium text-gray-700 ${
+                                hidePlanAndStockColumns ? 'w-1/3' : ''
+                            }`}
+                        >Ингредиент</th>
+                        {!hidePlanAndStockColumns &&(<th className="px-6 py-3 w-32 text-center text-sm font-medium text-gray-700">По плану</th> )}
+                        {showStockColumn && !hidePlanAndStockColumns && (
                             <th className="px-6 py-3 w-32 text-center text-sm font-medium text-gray-700 whitespace-nowrap">
                                 <div className="flex items-center justify-center gap-2">
                                     В запасах
@@ -423,10 +444,22 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
 
                         )}
 
-                        <th className="px-6 py-3 w-28 text-center text-sm font-medium text-gray-700">Ед. изм.</th>
+                        <th
+                            className={`px-6 py-3 text-center text-sm font-medium text-gray-700 ${
+                                hidePlanAndStockColumns ? 'w-1/3' : 'w-28'
+                            }`}
+                        >
+                            Ед. изм.
+                        </th>
 
-                        {showStockColumn && <th className="px-6 py-3 text-center text-sm font-medium text-gray-700">Нужно купить</th>
-                        }
+
+                        <th
+                            className={`px-6 py-3 text-center text-sm font-medium text-gray-700 ${
+                                hidePlanAndStockColumns ? 'w-1/3' : ''
+                            }`}
+                        >
+                            Нужно купить
+                        </th>
 
 
                     </tr>
@@ -447,9 +480,14 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                                     </button>
                                 </td>
                             )}
+
                             <td className="px-6 py-4 text-sm ">{item.Ingredient.name}</td>
-                            <td className="px-6 py-4 text-sm text-center">{item.quantity}</td>
-                            {showStockColumn && (
+
+                            {!hidePlanAndStockColumns && (
+                                <td className="px-6 py-4 text-sm text-center">{item.quantity}</td>
+                            )}
+
+                            {showStockColumn && !hidePlanAndStockColumns && (
                                 <td className="px-6 py-4 text-sm text-center pl-2">
                                     {editStockMode ? (
                                         <input
@@ -478,14 +516,13 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                                 <td className="px-6 py-4 text-sm text-center">
                                     {inStock[item.shopping_item_id] >= item.quantity
                                         ? '-'
-                                        : `${item.quantity - inStock[item.shopping_item_id]}`
-                                    }
+                                        : `${item.quantity - inStock[item.shopping_item_id]}`}
                                 </td>
                             )}
-
                         </tr>
                     ))}
                     </tbody>
+
                 </table>
             </div>
 
