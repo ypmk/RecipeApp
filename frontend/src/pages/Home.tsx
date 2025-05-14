@@ -18,7 +18,7 @@ const Home: React.FC = () => {
             <main className="px-4 md:px-40 py-5 flex-1">
                 <div className="max-w-[960px] mx-auto">
                     <div className="flex flex-wrap items-center justify-between ">
-                        <div className="flex-1 min-w-[0]">
+                        <div className="pl-1 flex-1 min-w-[0]">
                             <SearchBar value={searchQuery} onChange={setSearchQuery} />
                         </div>
                         <button
