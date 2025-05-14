@@ -124,8 +124,11 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
 
     const handleSaveClick = async () => {
         try {
-            const res = await axios.put(`/api/shopping-lists/${shoppingListId}`, { name: newName });
-            setShoppingList(res.data);
+            await axios.put(`/api/shopping-lists/${shoppingListId}`, { name: newName });
+
+            const refreshedList = await axios.get(`/api/shopping-lists/${shoppingListId}`);
+            refreshedList.data.UserProducts.sort((a: UserProduct, b: UserProduct) => a.id - b.id);
+            setShoppingList(refreshedList.data);
             setEditing(false);
         } catch (err) {
             console.error('Ошибка при обновлении названия списка', err);
@@ -303,70 +306,86 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
     if (!shoppingList) return <div className="text-center text-red-500">Список не найден</div>;
 
     return (
-        <div className="max-w-2xl mx-auto mt-6">
-            <div className="flex items-center justify-between mb-4">
+        <div className="max-w-2xl mx-auto mt-6 px-4">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between sm:gap-4 mb-4">
+                <div className="order-1 sm:order-none flex-1 min-w-0">
                 {editing ? (
-                    <div className="flex gap-2 w-full">
                         <input
+                            type="text"
                             value={newName}
                             onChange={(e) => setNewName(e.target.value)}
-                            className="border border-gray-300 px-4 py-2 rounded-lg text-lg shadow-sm w-full max-w-sm"
+                            onBlur={handleSaveClick}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSaveClick();
+                                if (e.key === 'Escape') setEditing(false);
+                            }}
+                            autoFocus
+                            className="text-2xl font-bold border border-gray-300 rounded px-2 py-1 w-full sm:w-auto"
                         />
+                    ) : (
+                    <h2 className="text-2xl font-bold text-gray-800 break-words whitespace-pre-line">
+
+                    {shoppingList.name}
+                        </h2>
+                    )}
+                </div>
+
+
+                <div className="flex flex-wrap sm:flex-nowrap pt-2 gap-2 order-2 sm:order-none sm:ml-4 mt-2 sm:mt-0">
+
+                <button
+                        onClick={() => setConfirmDeleteOpen(true)}
+                        className="p-2 text-red-600 hover:bg-red-100 border border-gray-300 rounded-lg bg-white shadow-sm"
+                        title="Удалить"
+                    >
+                        <Trash2 size={20} />
+                    </button>
+                    {editing && newName.trim() !== shoppingList.name.trim() ? (
                         <button
                             onClick={handleSaveClick}
-                            className="bg-[#F19953] hover:bg-[#f18953] text-white px-4 py-2 rounded-lg shadow"
+                            className="flex items-center gap-2 px-6 py-2 text-sm text-green-700 border border-green-400 rounded-lg bg-white shadow-sm"
+                            title="Сохранить"
                         >
-                            Сохранить
+                            <CheckCircle size={20} />
                         </button>
-                    </div>
-                ) : (
-                    <>
-                        <h2 className="text-2xl font-bold text-gray-800">{shoppingList.name}</h2>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => setConfirmDeleteOpen(true)}
-                                className="p-2 text-red-600 hover:bg-red-100 border border-gray-300 rounded-lg bg-white shadow-sm"
-                                title="Удалить"
-                            >
-                                <Trash2 size={20} />
-                            </button>
-                            <button
-                                onClick={handleEditClick}
-                                className="flex items-center gap-2 px-6 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg bg-white hover:bg-gray-100 shadow-sm"
-                                title="Редактировать"
-                            >
-                                <Edit3 size={20} />
-                            </button>
-                            <button
-                                onClick={() => setInStoreMode(prev => !prev)}
-                                className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-lg bg-white shadow-sm hover:bg-gray-100 ${
-                                    inStoreMode ? 'text-green-600 border-green-400' : 'text-gray-700 border-gray-300'
-                                }`}
-                                title="Режим 'в магазине'"
-                            >
-                                <ShoppingCart size={20} />
-                            </button>
-                            <button
-                                onClick={() => setShowStockColumn(prev => !prev)}
-                                className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-lg bg-white shadow-sm hover:bg-gray-100 ${
-                                    showStockColumn ? 'text-green-600 border-green-400' : 'text-gray-700 border-gray-300'
-                                }`}
-                                title="Режим 'запасы'"
-                            >
-                                <Package size={20} />
-                            </button>
+                    ) : (
+                        <button
+                            onClick={handleEditClick}
+                            className="flex items-center gap-2 px-6 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg bg-white hover:bg-gray-100 shadow-sm"
+                            title="Редактировать"
+                        >
+                            <Edit3 size={20} />
+                        </button>
+                    )}
 
-                            <button
-                                onClick={toggleAddProductRow}
-                                className="border rounded-lg p-2 border-gray-300 shadow-sm hover:bg-gray-100 transition-colors duration-200"
-                                title="Добавить продукт"
-                            >
-                                <Plus size={20} className="text-gray-700" />
-                            </button>
-                        </div>
-                    </>
-                )}
+                    <button
+                        onClick={() => setInStoreMode(prev => !prev)}
+                        className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-lg bg-white shadow-sm hover:bg-gray-100 ${
+                            inStoreMode ? 'text-green-600 border-green-400' : 'text-gray-700 border-gray-300'
+                        }`}
+                        title="Режим 'в магазине'"
+                    >
+                        <ShoppingCart size={20} />
+                    </button>
+                    <button
+                        onClick={() => setShowStockColumn(prev => !prev)}
+                        className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-lg bg-white shadow-sm hover:bg-gray-100 ${
+                            showStockColumn ? 'text-green-600 border-green-400' : 'text-gray-700 border-gray-300'
+                        }`}
+                        title="Режим 'запасы'"
+                    >
+                        <Package size={20} />
+                    </button>
+                    <button
+                        onClick={toggleAddProductRow}
+                        className="border rounded-lg p-2 border-gray-300 shadow-sm hover:bg-gray-100 transition-colors duration-200"
+                        title="Добавить продукт"
+                    >
+                        <Plus size={20} className="text-gray-700" />
+                    </button>
+                </div>
             </div>
+
 
             <div className="bg-white shadow-md rounded-xl overflow-auto">
                 <table className="min-w-full table-auto">
@@ -470,7 +489,7 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                 </table>
             </div>
 
-            {shoppingList.UserProducts.length > 0 && (
+            {shoppingList.UserProducts?.length > 0 && (
             <div className="mt-6 mb-2 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-800">Сопутствующие продукты</h3>
             </div>
@@ -478,14 +497,14 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
 
             <div className="bg-white shadow-md rounded-xl overflow-auto mb-6">
                 <table className="min-w-full table-auto">
-                    {shoppingList.UserProducts.length > 0 && (
+                    {shoppingList.UserProducts?.length > 0 && (
                     <thead className="bg-gray-100">
                     <tr>
                         {inStoreMode && <th className="px-4 py-3 w-10"></th>}
-                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Продукт</th>
-                        <th className="px-6 py-3 text-center text-sm font-medium text-gray-700">Количество</th>
-                        <th className="px-6 py-3 text-center text-sm font-medium text-gray-700">Ед. изм.</th>
-                        <th className="px-6 py-3 text-center text-sm font-medium text-gray-700">Действия</th>
+                        <th className="px-5 py-3 text-left text-sm font-medium text-gray-700">Продукт</th>
+                        <th className="px-5 py-3 text-center text-sm font-medium text-gray-700">Кол-во</th>
+                        <th className="px-5 py-3 text-center text-sm font-medium text-gray-700">Ед. изм.</th>
+                        <th className="px-5 py-3 text-center text-sm font-medium text-gray-700">Действия</th>
                     </tr>
                     </thead>
                     )}
@@ -508,6 +527,15 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
 
                             {editingProductId === product.id ? (
                                 <>
+                                    <td className="px-6 py-2 text-sm break-all">
+                                        <input
+                                            type="text"
+                                            value={editedProductName}
+                                            onChange={(e) => setEditedProductName(e.target.value)}
+                                            className="border px-2 py-1 rounded w-full"
+                                            autoFocus
+                                        />
+                                    </td>
                                     <td className="px-6 py-2">
                                         <input
                                             type="text"
@@ -521,7 +549,11 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                                                 }
                                             }}
                                             onBlur={() => {
-                                                if (editedProductQuantity === '' || isNaN(Number(editedProductQuantity)) || Number(editedProductQuantity) <= 0) {
+                                                if (
+                                                    editedProductQuantity === '' ||
+                                                    isNaN(Number(editedProductQuantity)) ||
+                                                    Number(editedProductQuantity) <= 0
+                                                ) {
                                                     setEditedProductQuantity(1);
                                                 }
                                             }}
@@ -558,6 +590,7 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                                         </button>
                                     </td>
                                 </>
+
                             ) : (
                                 <>
                                     <td className="px-6 py-4 text-sm break-all">{product.name}</td>
