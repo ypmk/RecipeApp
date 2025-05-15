@@ -15,6 +15,7 @@ import Collections from "./Collections";
 import CollectionsRecipes from "./CollectionsRecipes";
 import RecipeImage from "./RecipeImage";
 import CookingTime from "./CookingTime";
+import UserProducts from "./UserProducts";
 
 
 /** ---------- Связи между User и Recipe через RecipeUser ---------- */
@@ -140,6 +141,12 @@ RecipesIngredients.belongsTo(IngredientUnits, {
     as: 'unit'
 });
 
+ShoppingLists.hasMany(UserProducts, {
+    foreignKey: 'shopping_list_id',
+});
+UserProducts.belongsTo(ShoppingLists, {
+    foreignKey: 'shopping_list_id',
+});
 
 
 /**
@@ -163,4 +170,5 @@ export {
     CollectionUsers,
     CollectionsRecipes,
     CookingTime,
+    UserProducts,
 };
