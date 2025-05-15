@@ -8,7 +8,6 @@ import ShoppingLists from '../models/ShoppingLists';
 import ShoppingItems from '../models/ShoppingItems';
 import IngredientUnits from '../models/IngredientUnits';
 import {User} from "../models";
-import Friendship from "../models/Friendship";
 import UserProducts from '../models/UserProducts';
 
 import {Op} from "sequelize";
@@ -383,21 +382,6 @@ router.post('/:shoppingListId/transfer', authenticateJWT, async (req: Authentica
         }
         if (targetUser.id === senderId) {
            res.status(400).json({ message: 'Нельзя передать список самому себе' });
-            return
-        }
-
-        // Проверка дружбы (проверяем в обе стороны)
-        const friendship = await Friendship.findOne({
-            where: {
-                [Op.or]: [
-                    { userId: senderId, friendId: targetUser.id },
-                    { userId: targetUser.id, friendId: senderId }
-                ],
-                status: 'accepted'
-            }
-        });
-        if (!friendship) {
-            res.status(403).json({ message: 'Передача списка возможна только между друзьями' });
             return
         }
 

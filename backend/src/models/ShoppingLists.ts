@@ -7,7 +7,6 @@ import {
 } from 'sequelize';
 import  sequelize  from '../database';
 import ShoppingItems from './ShoppingItems';
-import {UserProducts} from "./index";
 
 class ShoppingLists extends Model<
     InferAttributes<ShoppingLists>,

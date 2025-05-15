@@ -45,12 +45,14 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: 'http://localhost:3000',
+        //target: 'http://my_backend:3000',
         changeOrigin: true,
         secure: false,
         cookieDomainRewrite: 'localhost',
       },
       '/uploads': {
         target: 'http://localhost:3000',
+        //target: 'http://my_backend:3000',
         changeOrigin: true,
       },
     },
