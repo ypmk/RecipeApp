@@ -1,4 +1,3 @@
-// UserDetails.tsx
 import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -9,7 +8,6 @@ const UserDetails: React.FC = () => {
     const navigate = useNavigate();
     const [recipes, setRecipes] = useState<any[]>([]);
 
-    // Получаем список рецептов пользователя при монтировании компонента
     useEffect(() => {
         if (user) {
             axios.get('/api/recipes', {
@@ -32,7 +30,6 @@ const UserDetails: React.FC = () => {
 
     const handleExport = async () => {
         try {
-            // Собираем все recipe_id из полученного списка рецептов
             const recipeIds = recipes.map(recipe => recipe.recipe_id);
             const response = await axios.post(
                 '/api/recipes/export-pdf',
@@ -44,13 +41,10 @@ const UserDetails: React.FC = () => {
                         'Accept': 'application/pdf'
                     },
                     responseType: 'arraybuffer',
-
                 }
             );
 
-
             const pdfBlob = new Blob([new Uint8Array(response.data)], { type: 'application/pdf' });
-
             const url = window.URL.createObjectURL(pdfBlob);
             const link = document.createElement('a');
             link.href = url;
@@ -58,41 +52,44 @@ const UserDetails: React.FC = () => {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-
         } catch (error) {
             console.error('Ошибка экспорта рецептов', error);
         }
     };
 
-
-
-
-
     return (
-        <div className="p-6">
+        <div className="p-6 sm:p-10 text-left">
             {user ? (
                 <>
-                    <p className="mb-4">
-                        Имя: <span className="font-medium">{user.username}</span>
+                    <h1 className="text-2xl font-bold mb-2">
+                        Привет, {user.username} <span role="img" aria-label="wave">👋</span>
+                    </h1>
+                    <p className="text-gray-500 text-base sm:text-lg mb-4">
+                        Добро пожаловать в личный кабинет
                     </p>
-                    <button
-                        onClick={handleExport}
-                        className="mb-4 px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 transition"
-                    >
-                        Экспортировать мои рецепты
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-3 w-full max-w-md">
+                        <button
+                            onClick={handleExport}
+                            className="w-full sm:w-auto px-5 py-3 text-base font-semibold rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition"
+                        >
+                            Экспортировать рецепты
+                        </button>
+                        <button
+                            onClick={handleLogout}
+                            className="w-full sm:w-auto px-5 py-3 text-base font-semibold rounded-xl bg-red-500 text-white hover:bg-red-600 transition"
+                        >
+                            Выйти
+                        </button>
+                    </div>
+
                 </>
             ) : (
                 <p className="mb-4 text-red-500">Пользователь не найден</p>
             )}
-            <button
-                onClick={handleLogout}
-                className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600 transition"
-            >
-                Выйти
-            </button>
         </div>
     );
+
+
 };
 
 export default UserDetails;
