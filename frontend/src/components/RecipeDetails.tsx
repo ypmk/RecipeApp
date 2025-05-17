@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Lightbox from 'react-image-lightbox';
 import 'react-image-lightbox/style.css';
 import RecipeCollectionsSelector from './RecipeCollectionsSelector';
-import {Bookmark, Edit3, Trash2} from "lucide-react";
+import {Bookmark, Edit3, Send, Trash2} from "lucide-react";
 import ConfirmModal from "./ConfirmModal.tsx";
 import SendRecipeModal from "./SendRecipeModal.tsx";
 
@@ -152,8 +152,9 @@ const RecipeDetails: React.FC = () => {
                             title="Отправить пользователю"
                             className="p-2 bg-white border border-gray-300 text-gray-800 rounded-lg hover:bg-gray-100 transition shadow-sm"
                         >
-                            📤
+                            <Send size={20} strokeWidth={2} />
                         </button>
+
 
                         <button
                             onClick={() => setShowCollections(true)}
