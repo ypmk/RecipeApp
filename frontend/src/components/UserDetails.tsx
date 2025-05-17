@@ -64,8 +64,11 @@ const UserDetails: React.FC = () => {
                     <h1 className="text-2xl font-bold mb-2">
                         Привет, {user.username} <span role="img" aria-label="wave">👋</span>
                     </h1>
-                    <p className="text-gray-500 text-base sm:text-lg mb-4">
+                    <p className="text-gray-500 text-base sm:text-lg mb-2">
                         Добро пожаловать в личный кабинет
+                    </p>
+                    <p className="text-gray-500 text-base sm:text-lg mb-4">
+                        Ваш идентификатор: <span className="font-medium text-[#1C160C]">{user.identifier}</span>
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-3 w-full max-w-md">
                         <button
