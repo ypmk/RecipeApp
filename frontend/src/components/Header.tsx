@@ -105,12 +105,20 @@ const Header = () => {
                         ))}
 
                         {user ? (
-                            <Link
-                                to="/user"
-                                onClick={() => setMenuOpen(false)}
-                            >
-                                Аккаунт
-                            </Link>
+                            <>
+                                <Link
+                                    to="/friends"
+                                    onClick={() => setMenuOpen(false)}
+                                >
+                                    Друзья
+                                </Link>
+                                <Link
+                                    to="/user"
+                                    onClick={() => setMenuOpen(false)}
+                                >
+                                    Аккаунт
+                                </Link>
+                            </>
                         ) : (
                             <>
                                 <Link to="/login">
