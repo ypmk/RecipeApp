@@ -49,8 +49,20 @@ const SendRecipeModal: React.FC<SendRecipeModalProps> = ({ recipeId, onClose }) 
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
+            <div className="relative bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
+
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition"
+                    aria-label="Закрыть"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
                 <h2 className="text-lg font-bold mb-4">Отправить рецепт</h2>
+
                 <input
                     type="text"
                     placeholder="@username"
@@ -69,17 +81,21 @@ const SendRecipeModal: React.FC<SendRecipeModalProps> = ({ recipeId, onClose }) 
                 {foundUser && <p className="text-green-600">Пользователь найден: {foundUser}</p>}
                 {notFound && <p className="text-red-600">Пользователь не найден</p>}
 
-                <div className="flex justify-end mt-4 gap-2">
-                    <button onClick={onClose} className="px-3 py-1 border rounded">Отмена</button>
-                    {foundUser && (
-                        <button onClick={handleSend} className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+
+                {foundUser && (
+                    <div className="flex justify-end mt-4">
+                        <button
+                            onClick={handleSend}
+                            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
+                        >
                             Отправить
                         </button>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
         </div>
     );
+
 };
 
 export default SendRecipeModal;
