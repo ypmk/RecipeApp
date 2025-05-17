@@ -2,6 +2,7 @@ import { useContext, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { useLocation } from 'react-router-dom';
+import {Earth} from "lucide-react";
 
 const Header = () => {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -56,13 +57,21 @@ const Header = () => {
                         <Link key={item.title} to={item.to}>{item.title}</Link>
                     ))}
                     {user ? (
-                        <Link to="/user">
-                            <button className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A10.97 10.97 0 0112 15c2.43 0 4.663.777 6.435 2.09M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                            </button>
-                        </Link>
+                        <>
+                            <Link to="/friends">
+                                <button className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full">
+                                    <Earth className="w-5 h-5 text-gray-800" />
+                                </button>
+                            </Link>
+
+                            <Link to="/user">
+                                <button className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A10.97 10.97 0 0112 15c2.43 0 4.663.777 6.435 2.09M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                </button>
+                            </Link>
+                        </>
                     ) : (
                         <>
                             <Link to="/login">

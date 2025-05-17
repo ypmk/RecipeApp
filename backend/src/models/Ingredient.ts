@@ -11,6 +11,10 @@ class Ingredient extends Model<InferAttributes<Ingredient>, InferCreationAttribu
     declare ingredient_id: CreationOptional<number>;
     declare name: string;
     declare user_id: number;
+    declare RecipesIngredients?: {
+        quantity: number;
+        unit_id: number;
+    };
 
     declare createdAt: CreationOptional<Date>;
     declare updatedAt: CreationOptional<Date>;

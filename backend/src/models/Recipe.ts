@@ -6,6 +6,8 @@ import {
     CreationOptional,
 } from 'sequelize';
 import sequelize from '../database';
+import Ingredient from "./Ingredient";
+import RecipeImage from "./RecipeImage";
 
 
 class Recipe extends Model<InferAttributes<Recipe>, InferCreationAttributes<Recipe>> {
@@ -16,6 +18,8 @@ class Recipe extends Model<InferAttributes<Recipe>, InferCreationAttributes<Reci
     declare number_of_servings: number | null;
     declare main_image:  string | null;
     declare cooking_time_id: number | null;
+    declare ingredients?: Ingredient[];
+    declare images?: RecipeImage[];
 
     declare createdAt: CreationOptional<Date>;
     declare updatedAt: CreationOptional<Date>;

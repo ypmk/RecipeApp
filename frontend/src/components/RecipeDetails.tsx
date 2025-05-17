@@ -6,6 +6,7 @@ import 'react-image-lightbox/style.css';
 import RecipeCollectionsSelector from './RecipeCollectionsSelector';
 import {Bookmark, Edit3, Trash2} from "lucide-react";
 import ConfirmModal from "./ConfirmModal.tsx";
+import SendRecipeModal from "./SendRecipeModal.tsx";
 
 interface RecipeIngredientInfo {
     quantity: number;
@@ -56,6 +57,9 @@ const RecipeDetails: React.FC = () => {
 
     const navigate = useNavigate();
 
+    const [isSendModalOpen, setIsSendModalOpen] = useState(false);
+
+
 
     const handleDeleteConfirm = async () => {
         try {
@@ -63,7 +67,7 @@ const RecipeDetails: React.FC = () => {
             await axios.delete(`/api/recipes/${recipeId}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            navigate('/');
+            navigate('/main');
         } catch (error) {
             console.error('Ошибка при удалении рецепта:', error);
             alert('Не удалось удалить рецепт');
@@ -143,6 +147,14 @@ const RecipeDetails: React.FC = () => {
                         >
                             <Edit3 size={24} strokeWidth={2} />
                         </button>
+                        <button
+                            onClick={() => setIsSendModalOpen(true)}
+                            title="Отправить пользователю"
+                            className="p-2 bg-white border border-gray-300 text-gray-800 rounded-lg hover:bg-gray-100 transition shadow-sm"
+                        >
+                            📤
+                        </button>
+
                         <button
                             onClick={() => setShowCollections(true)}
                             title="Добавить в коллекцию"
@@ -290,6 +302,14 @@ const RecipeDetails: React.FC = () => {
                 onCancel={() => setIsDeleteModalOpen(false)}
                 onConfirm={handleDeleteConfirm}
             />
+            {/* Отправка рецепта другому пользователю */}
+            {isSendModalOpen && (
+                <SendRecipeModal
+                    recipeId={recipe.recipe_id}
+                    onClose={() => setIsSendModalOpen(false)}
+                />
+            )}
+
 
         </div>
     );

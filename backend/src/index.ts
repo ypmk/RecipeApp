@@ -20,6 +20,8 @@ import mealPlanRoutes from "./routes/mealPlanRoutes";
 import shoppingListRoutes from "./routes/shoppingListRoutes";
 import cookieParser from 'cookie-parser';
 import recipeExport from './routes/recipeExport';
+import userRoutes from './routes/userRoutes';
+import friendRoutes from "./routes/friendRoutes";
 
 dotenv.config();
 
@@ -64,10 +66,14 @@ app.use('/api/meal-plans', shoppingListRoutes);
 // Список покупок
 app.use("/api/shopping-lists", shoppingListRoutes);
 
-
+// Для пересылки между пользователями
+app.use('/api/users', userRoutes);
 
 // Маршрут экспорта рецептов в PDF
 app.use('/api/recipes', recipeExport);
+
+app.use('/api/friends', friendRoutes);
+
 
 const seedIngredientUnits = async () => {
     const existing = await IngredientUnits.count();

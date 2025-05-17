@@ -9,6 +9,21 @@ dotenv.config();
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
+async function generateUniqueIdentifier(username: string): Promise<string> {
+    const base = '@' + username.toLowerCase();
+    let identifier = base;
+    let exists = await User.findOne({ where: { identifier } });
+
+    while (exists) {
+        const suffix = Math.floor(1000 + Math.random() * 9000); // случайное 4-значное число
+        identifier = `${base}${suffix}`;
+        exists = await User.findOne({ where: { identifier } });
+    }
+
+    return identifier;
+}
+
+
 // Регистрация пользователя
 router.post('/register', async (req, res) => {
     const { username, password, role } = req.body;
@@ -16,17 +31,26 @@ router.post('/register', async (req, res) => {
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
+        const identifier = await generateUniqueIdentifier(username);
+
         const newUser = await User.create({
             username,
             password: hashedPassword,
             role: mappedRole,
+            identifier,
         });
-        res.status(201).json(newUser);
+
+        res.status(201).json({
+            id: newUser.id,
+            username: newUser.username,
+            identifier: newUser.identifier,
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Ошибка при регистрации пользователя' });
     }
 });
+
 
 // Авторизация пользователя (login)
 router.post('/login', async (req, res) => {

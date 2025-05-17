@@ -18,6 +18,7 @@ import ShoppingListsPage from "./pages/ShoppingListsPage.tsx";
 import ListDetailsPage from "./pages/ListDetailsPage.tsx";
 import {RequireAuth} from "./context/RequireAuth.tsx";
 import UserPage from "./pages/UserPage.tsx";
+import FriendsPage from "./pages/FriendsPage.tsx";
 
 const App: React.FC = () => {
     return (
@@ -120,9 +121,16 @@ const App: React.FC = () => {
 
 
                     <Route path="/user" element={
-
+                        <RequireAuth>
                             <UserPage />
+                        </RequireAuth>
+                    }
+                    />
 
+                    <Route path="/friends" element={
+                        <RequireAuth>
+                            <FriendsPage />
+                        </RequireAuth>
                     }
                     />
 

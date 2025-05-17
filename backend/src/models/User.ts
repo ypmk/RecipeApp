@@ -2,17 +2,15 @@ import {Model, InferAttributes, InferCreationAttributes, CreationOptional, NonAt
 import sequelize from "../database";
 
 class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
-    // 'CreationOptional' is a special type that marks the field as optional
-    // when creating an instance of the model (such as using Model.create()).
     declare id: CreationOptional<number>;
     declare username: string;
     declare password: string;
     declare role: string;
     declare age: NonAttribute<string>;
+    declare identifier: string;
 
-    // createdAt can be undefined during creation
+
     declare createdAt: CreationOptional<Date>;
-    // updatedAt can be undefined during creation
     declare updatedAt: CreationOptional<Date>;
 }
 
@@ -35,6 +33,11 @@ User.init(
         role: {
             type: DataTypes.STRING,
             allowNull: false,
+        },
+        identifier: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            unique: true,
         },
         createdAt: DataTypes.DATE,
         updatedAt: DataTypes.DATE,
