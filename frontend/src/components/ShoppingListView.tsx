@@ -453,13 +453,16 @@ const ShoppingListView: React.FC<ShoppingListViewProps> = ({ shoppingListId }) =
                         </th>
 
 
-                        <th
-                            className={`px-6 py-3 text-center text-sm font-medium text-gray-700 ${
-                                hidePlanAndStockColumns ? 'w-1/3' : ''
-                            }`}
-                        >
-                            Нужно купить
-                        </th>
+                        {showStockColumn && (
+                            <th
+                                className={`px-6 py-3 text-center text-sm font-medium text-gray-700 ${
+                                    hidePlanAndStockColumns ? 'w-1/3' : ''
+                                }`}
+                            >
+                                Нужно купить
+                            </th>
+                        )}
+
 
 
                     </tr>
