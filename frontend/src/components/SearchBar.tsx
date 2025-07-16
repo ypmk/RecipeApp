@@ -21,7 +21,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
                         </svg>
                     </div>
                     <input
-                        className="flex-1 bg-[#E4E9F1] text-[#141C24] placeholder-[#3F5374] px-4 text-base font-normal focus:outline-none truncate overflow-hidden whitespace-nowrap"
+                        className="flex-1 bg-[#E4E9F1] text-[#141C24] placeholder-[#3F5374] px-4 text-base font-normal focus:outline-none break-words"
                         type="text"
                         placeholder="Введите название рецепта..."
                         value={value}
