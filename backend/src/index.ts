@@ -49,7 +49,7 @@ app.use('/api/ingredients', ingredientRoutes);
 app.use('/api/ingredient-units', ingredientUnitsRoutes);
 
 // Статическая папка для загрузок
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+app.use('/uploads', express.static(path.resolve('uploads')));
 
 // Маршруты коллекций
 app.use('/api/collections', collectionRoutes);

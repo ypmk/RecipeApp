@@ -25,7 +25,7 @@ router.post('/', authenticateJWT, upload.single('main_image'), async (req: Authe
         const { name, instructions, cooking_time_id, number_of_servings } = req.body;
 
         const imagePath = req.file
-            ? req.file.path.replace(/\\/g, '/')
+            ? `uploads/${req.file.filename}`
             : null;
 
         const newRecipe = await Recipe.create({
@@ -251,7 +251,7 @@ router.put('/:id', authenticateJWT, upload.single('main_image'), async (req: Aut
 
         // Если передан новый файл главного изображения, обновляем его
         if (req.file) {
-            const imagePath = req.file.path.replace(/\\/g, '/');
+	    const imagePath = `uploads/${req.file.filename}`;
             recipe.main_image = imagePath;
         }
 
@@ -344,7 +344,7 @@ router.post('/:id/images', authenticateJWT, upload.array('images', 5), async (re
         }
 
         const savedImages = await Promise.all(files.map(file => {
-            const normalizedPath = file.path.replace(/\\/g, '/');
+            const normalizedPath = `uploads/${file.filename}`;
             return RecipeImage.create({
                 recipe_id: recipeId,
                 image_path: normalizedPath,
